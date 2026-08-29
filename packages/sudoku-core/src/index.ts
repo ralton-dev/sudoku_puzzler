@@ -11,9 +11,11 @@
  *         (grid.ts, solver.ts), and their stubs are gone
  *   WP-C  landed — generatePuzzle and GenerationFailed are real (generator.ts),
  *         and the stub and the class that lived here are gone
- *   WP-D  generate, rate                                   (rater.ts, level.ts)
+ *   WP-D  landed — generate and rate are real (level.ts, rater.ts), and with
+ *         them the last stub went, so `NotImplemented` is gone too
  *
- * When the last stub goes, `NotImplemented` below goes with it.
+ * Every export below is now a re-export of a real implementation; nothing here
+ * throws.
  */
 
 export type {
@@ -78,33 +80,12 @@ export {
   shuffleGrid,
 } from './generator.js';
 
-import type { Grid, Level, Puzzle, Rating } from './types.js';
-
-/**
- * Thrown by a WP-A stub. The message names the package that owes the
- * implementation, so a wave-2 failure reads as "not yet" rather than "broken".
- */
-export class NotImplemented extends Error {
-  readonly workPackage: string;
-
-  constructor(workPackage: string, symbol: string, ..._args: unknown[]) {
-    super(`${symbol}() is not implemented yet — ${workPackage} lands it.`);
-    this.name = 'NotImplemented';
-    this.workPackage = workPackage;
-  }
-}
-
-// --- WP-D ---------------------------------------------------------------
-
-/**
- * Score `grid` by the decision-16 ladder. `null` when the ladder stalls — such
- * a puzzle has no score and is never served.
- */
-export function rate(grid: Grid): Rating | null {
-  throw new NotImplemented('WP-D', 'rate', grid);
-}
-
-/** A puzzle with exactly one solution, rated at `level` (decisions 4 and 5). */
-export function generate(options: { level: Level; seed: number }): Puzzle {
-  throw new NotImplemented('WP-D', 'generate', options);
-}
+// --- WP-D: techniques/, rater.ts, level.ts ------------------------------
+// `rate` is the decision-16 ladder; `levelOf` reads its score; `generate` digs
+// a puzzle into a level's band. `createState`/`applyStep` are the candidate
+// state techniques run on — WP-T1 rebuilds a stored position with
+// `createState(grid, eliminated)` and re-runs one `TECHNIQUES[id]` against it.
+export type { Technique, TechniqueState } from './techniques/index.js';
+export { COSTS, LADDER, TECHNIQUES, applyStep, createState } from './techniques/index.js';
+export { levelOf, rate } from './rater.js';
+export { BANDS, generate } from './level.js';
