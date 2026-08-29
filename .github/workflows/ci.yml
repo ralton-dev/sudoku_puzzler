@@ -146,17 +146,25 @@ jobs:
       - name: Boot it and play one hand
         run: |
           set -euo pipefail
-          docker run --detach --name sudoku-ci --publish 8080:8080 sudoku-puzzler:ci
+          docker run --detach --name sudoku-ci --publish 8080:8080 \
+            --env APP_VERSION="sha-${GITHUB_SHA}" sudoku-puzzler:ci
+          # `/readyz` is the wait, here and in the Dockerfile HEALTHCHECK and in
+          # the cluster: it is 503 until the volume is mounted and the schema is
+          # migrated, which is exactly the condition the next three lines need.
           for _ in $(seq 1 60); do
-            if curl --silent --fail --output /dev/null http://127.0.0.1:8080/api/history; then break; fi
+            if curl --silent --fail --output /dev/null http://127.0.0.1:8080/readyz; then break; fi
             sleep 1
           done
+          echo "GET /healthz: $(curl --silent http://127.0.0.1:8080/healthz)"
+          ready=$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8080/readyz)
           empty=$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8080/api/game)
           created=$(curl --silent --output /dev/null --write-out '%{http_code}' \
             --request POST --header 'content-type: application/json' \
             --data '{"level":"medium"}' http://127.0.0.1:8080/api/game)
+          echo "GET /readyz:                    $ready (want 200)"
           echo "GET /api/game on a fresh volume: $empty (want 204)"
           echo "POST /api/game {level:medium}:  $created (want 201)"
+          test "$ready" = "200"
           test "$empty" = "204"
           test "$created" = "201"
 

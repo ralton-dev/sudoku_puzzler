@@ -19,7 +19,9 @@ import { AWKWARD, PRODUCTION, baseUrl, type E2eServer } from './e2e/servers';
 const webServerFor = (server: E2eServer) => ({
   // `rm -rf` first: a fresh DB is the precondition of both specs.
   command: `rm -rf ${JSON.stringify(server.dataDir)} && node dist/server/index.js`,
-  url: `${baseUrl(server)}/api/history`,
+  // The same probe the container's HEALTHCHECK and the cluster use: 503 until
+  // the schema is migrated, 200 the instant it is safe to drive a browser at.
+  url: `${baseUrl(server)}/readyz`,
   env: { ...server.env, DATA_DIR: server.dataDir, PORT: String(server.port), HOST: '127.0.0.1' },
   reuseExistingServer: false,
   stdout: 'pipe' as const,

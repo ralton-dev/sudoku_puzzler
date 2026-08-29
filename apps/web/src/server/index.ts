@@ -21,6 +21,7 @@ import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import { GenerationFailed, LEVELS } from 'sudoku-core';
 import { dataDir, openDb, type Db } from './db.js';
 import { seedAwkwardGame } from './awkward.js';
+import { registerHealth } from './health.js';
 import { corePuzzleSource, fixturePuzzleSource, type PuzzleSource } from './puzzleSource.js';
 import { registerRoutes } from './routes.js';
 
@@ -73,6 +74,9 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     return reply.code(status >= 500 ? 500 : status).send({ error: 'internal-error' });
   });
 
+  // Outside `/api/*` and registered first, because the probes have to answer
+  // whatever else is wrong with this process (`health.ts`).
+  registerHealth(app, { db });
   registerRoutes(app, { db, puzzleSource });
 
   const serveClient = clientDir !== null && existsSync(join(clientDir, 'index.html'));

@@ -57,6 +57,10 @@ ENV NODE_ENV=production
 ENV DATA_DIR=/data
 ENV PORT=8080
 ENV HOST=0.0.0.0
+# What `/healthz` reports. `dev` is the honest default for an image built by
+# hand; CI's manifest sets it to the tag it deployed, because every package.json
+# in this workspace says 0.0.0 and the tag is the only version a container has.
+ENV APP_VERSION=dev
 
 WORKDIR /app
 # Only the two things the runtime needs from the deploy tree: the resolved
@@ -78,8 +82,11 @@ USER node
 VOLUME /data
 EXPOSE 8080
 
-# Cheap and honest: it exercises the route the client's first request uses.
+# `/readyz`, the same probe the cluster uses (contract §3) — one health story
+# everywhere rather than an application route standing in for one. It answers
+# 503 rather than throwing while the schema is behind, so an unready container
+# is unhealthy and not crashed.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||8080)+'/api/history').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||8080)+'/readyz').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"
 
 CMD ["node", "dist/server/index.js"]

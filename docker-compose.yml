@@ -20,12 +20,16 @@ services:
     ports:
       - '${HOST_PORT:-8080}:8080'
     environment:
-      # Defaults live in the Dockerfile; repeated here because these three are
-      # the whole runtime configuration and a reader should not have to open the
+      # Defaults live in the Dockerfile; repeated here because these are the
+      # whole runtime configuration and a reader should not have to open the
       # Dockerfile to find them. No auth (decision 7) — the edge gates it.
       PORT: '8080'
       HOST: '0.0.0.0'
       DATA_DIR: /data
+      # Reported by `/healthz`. `local` because that is what this is — a
+      # locally built image with no tag behind it. The cluster's manifest sets
+      # the image tag here instead.
+      APP_VERSION: local
     volumes:
       - sudoku-data:/data
 
