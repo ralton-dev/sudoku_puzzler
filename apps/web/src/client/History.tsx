@@ -11,6 +11,7 @@ import type { HistoryEntry } from '../shared/api';
 import { fetchHistory } from './api';
 import { formatElapsed } from './Timer';
 
+/** The column this feeds is headed "Pre-filled"; the two names are the same thing. */
 function clueCount(givens: string): number {
   let n = 0;
   for (const ch of givens) if (ch !== '0') n++;
@@ -58,7 +59,9 @@ export function History() {
           <th scope="col">Level</th>
           <th scope="col">Completed</th>
           <th scope="col">Time</th>
-          <th scope="col">Clues</th>
+          <th scope="col" title="cells already filled when the puzzle started">
+            Pre-filled
+          </th>
         </tr>
       </thead>
       <tbody>
