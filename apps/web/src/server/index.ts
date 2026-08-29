@@ -85,7 +85,10 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
 export function clientDirCandidate(env: NodeJS.ProcessEnv = process.env): string {
   if (env.CLIENT_DIR && env.CLIENT_DIR.length > 0) return env.CLIENT_DIR;
   const here = fileURLToPath(new URL('.', import.meta.url));
-  const candidates = [join(here, '..', 'client'), join(here, '..', '..', 'dist', 'client')];
+  // `../../dist/client` resolves to apps/web/dist/client from BOTH src/server
+  // (dev) and dist/server (built), so it leads; `../client` is the built-only
+  // shorthand and doubles as the message when nothing is there yet.
+  const candidates = [join(here, '..', '..', 'dist', 'client'), join(here, '..', 'client')];
   return candidates.find((dir) => existsSync(join(dir, 'index.html'))) ?? (candidates[0] as string);
 }
 
