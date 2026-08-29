@@ -215,6 +215,25 @@ result as a local image for `docker run`.
 `.github/workflows/codeql.yml` runs javascript-typescript analysis on push, PR
 and weekly; it is not a required check.
 
+## Deployment contract
+
+`docs/homelab-deployment.md` is what the home lab's k3s cluster requires of this
+repo, section by section, checked against what the tree actually does. Read it
+before changing anything the deployment leans on: the health endpoints
+(`server/health.ts`), the SQLite locking mode (`server/db.ts`), the container's
+`HEALTHCHECK`, the image tags CI publishes, or the environment variables the
+README's configuration table lists — that table is what the ConfigMap is built
+from, so a new variable that is not in it does not reach the cluster.
+
+Two things in it are decisions rather than facts, recorded in the README:
+migrations run at **boot** rather than as a separate job (§7 option 1 — SQLite
+is single-writer on one RWO volume, and `/readyz` holds traffic off until the
+schema is current), and `locking_mode = EXCLUSIVE` is on by default with
+`SQLITE_EXCLUSIVE=false` as the opt-out (§6, and the pitfall below).
+
+Nothing here deploys itself. The manifests live in `homelab-k8s` and a human
+points them at a new `sha-<full-sha>` tag; Argo CD does the rest.
+
 ## Generation latency, and why there is no `puzzle_pool`
 
 The plan (WP-G) said: add a server-side pre-generation pool in a `puzzle_pool`
@@ -322,3 +341,14 @@ Things that cost someone an afternoon. Read before repeating them.
     package settings. `finance-planner`'s images are public and anonymously
     pullable, so the flip has been done there and is the precedent. Nothing in
     the workflow can do it: `packages: write` publishes, it does not govern.
+13. **`locking_mode = EXCLUSIVE` locks out every other connection, not just
+    every other process.** It is on by default (`SQLITE_EXCLUSIVE`, `db.ts`)
+    because it is what makes WAL safe on the home lab's NFS volume. Under it a
+    second `new Database(file)` gets `SQLITE_BUSY: database is locked`
+    immediately — same process or another, read-write **or** read-only, even
+    against a completely idle database. There is no lazy-lock behaviour to hope
+    for; SQLite takes the lock on first access and keeps it. So a test or a
+    tool that opens the server's file alongside the server has to either use
+    the app's own handle (which is why the harness exports `db`) or boot that
+    server with `SQLITE_EXCLUSIVE=false`, which is what `apps/web/e2e` does and
+    says so in `e2e/servers.ts`.

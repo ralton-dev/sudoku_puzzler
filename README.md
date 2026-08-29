@@ -35,6 +35,84 @@ Pin `sha-<commit>` rather than `latest` anywhere it matters; `latest` moves on
 every push. The remaining next step is the homelab Kubernetes manifest that
 deploys this image — that lives in the home lab's own repo, not this one.
 
+**Configuration.** Every setting is an environment variable with a default, and
+nothing reads a config file — the server starts with none of these set. There
+are **no secrets**: no auth (the edge gates the hostname), no database
+credentials (SQLite on a volume), no API keys, so a deployment needs a ConfigMap
+at most.
+
+| Variable           | Default                                   | Meaning                                                                                                  |
+| ------------------ | ----------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `PORT`             | `8080`                                    | listen port                                                                                              |
+| `HOST`             | `0.0.0.0`                                 | bind address                                                                                             |
+| `DATA_DIR`         | `./data` (image: `/data`)                 | directory holding `sudoku.db` — the only path the process writes to                                      |
+| `CLIENT_DIR`       | `<bundle>/../client` → `/app/dist/client` | built SPA to serve; serves the API only, with a warning, if it is absent                                 |
+| `MIGRATIONS_DIR`   | `<bundle>/migrations`                     | numbered `.sql` files, applied at boot                                                                   |
+| `APP_VERSION`      | `dev` (compose: `local`)                  | reported by `/healthz`; a deployment sets it to the image tag                                            |
+| `SQLITE_EXCLUSIVE` | `true`                                    | `locking_mode = EXCLUSIVE` — see below. `false` only where a second process must open the file           |
+| `NODE_ENV`         | `production` (image)                      | —                                                                                                        |
+| `SUDOKU_FIXTURE`   | unset                                     | **dev/e2e only** — `<level>` or `awkward` serves committed fixtures instead of generating. Never in prod |
+
+`SUDOKU_FIXTURE` refuses to boot on a value that is not `awkward` or one of the
+six levels, rather than silently ignoring it.
+
+**Health.** Two unauthenticated probes outside `/api/*`, cheap enough to run
+every ten seconds forever:
+
+- `GET /healthz` → `200 {"status":"ok","version":"<APP_VERSION>"}`. Liveness. It
+  touches no database, because the answer to a liveness failure is "restart the
+  process" and a restart cannot mount a missing volume.
+- `GET /readyz` → `200 {"status":"ready"}`. Readiness. It asks the open handle
+  for `count(*) FROM schema_migrations` and checks that the newest migration
+  file is recorded; when either fails it answers `503` with a `not-ready`
+  status and a `reason`, rather than throwing.
+
+The container's `HEALTHCHECK`, the CI smoke test and the e2e's server wait all
+use `/readyz`, so there is one health story rather than three.
+
+**Migrations run at boot**, from `MIGRATIONS_DIR`, in filename order, each file
+inside a transaction with the row that records it in `schema_migrations`. They
+are idempotent and forward-only; there is no down migration and no rollback.
+
+This is a deliberate, recorded deviation from the home lab's rule that
+migrations run as a separate job before the new version rolls out. SQLite is
+single-writer on one ReadWriteOnce volume, so a migration job would need the
+same volume the running server holds and — with the exclusive lock below —
+could not open the file at all while the old pod was up. Boot-time migration
+plus a readiness gate satisfies what that rule is actually for: `/readyz` is
+503 until the schema is current, so no traffic reaches a pod whose schema is
+behind. A deployment of this image wants `strategy: Recreate` — one pod at a
+time on one volume — which RWO storage forces anyway.
+
+**SQLite locking.** The database opens in WAL mode with
+`locking_mode = EXCLUSIVE` and `busy_timeout = 5000`. WAL's shared-memory index
+(`-shm`) is only coherent between processes on a single host, which makes plain
+WAL unsafe on the NFS volume this runs on in the home lab; exclusive locking
+keeps that index in heap memory and the `-shm` file is never created. The
+trade-off is that **nothing else can open the file while the server is up** —
+`sqlite3 /data/sudoku.db` from a debug shell gets `database is locked`, and so
+does a read-only connection. Stop the process, or copy the file first. Set
+`SQLITE_EXCLUSIVE=false` where a second process genuinely has to read it; the
+e2e suite is the only thing in this repo that does.
+
+**Network.** Deny-by-default namespaces need every path written down, so here
+they are. Inbound, all to the one container port:
+
+| From                        | Port | Why                       |
+| --------------------------- | ---- | ------------------------- |
+| the ingress (Traefik)       | 8080 | serving the app           |
+| the uptime monitor (gatus)  | 8080 | `/readyz`                 |
+| the dashboard (Homepage)    | 8080 | status                    |
+| kubelet, from the node CIDR | 8080 | liveness/readiness probes |
+
+Outbound: **none**. The server makes no HTTP calls at all — the generator, the
+rater, the fixtures and the training examples are all in-process, and the
+client bundle is self-contained and served by this same process. There are no
+analytics, no update checks and no CDN or font fetches. The one URL in the
+bundle (`https://www.sudokuoftheday.com/…`) is a provenance string in
+`fixtures/known.ts` and is never fetched. DNS is the only egress a policy needs
+to allow, and only because the standard set includes it.
+
 **Running it from source.** Node 22 and pnpm 9. `pnpm install`, then `pnpm
 check` for the whole gate — lint, typecheck, test, build, in that order.
 `pnpm --filter web dev` boots the server on `PORT` (default 8080) with the
