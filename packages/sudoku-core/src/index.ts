@@ -29,6 +29,34 @@ export { CELL_COUNT, LEVELS, TECHNIQUE_IDS } from './types.js';
 export type { Rng } from './rng.js';
 export { createRng, randomInt, shuffle } from './rng.js';
 
+// --- WP-B: grid.ts ------------------------------------------------------
+// `isValidGrid` and `isComplete` are the two the plan names; the rest are the
+// tables and helpers WP-C and WP-D build on. See grid.ts for the bitmask
+// convention — digit `d` is bit `d - 1`, and `candidates` returns 0 for a
+// filled cell.
+export {
+  ALL_DIGITS,
+  BOXES,
+  BOX_OF,
+  COLS,
+  COL_OF,
+  PEERS,
+  ROWS,
+  ROW_OF,
+  UNITS,
+  UNITS_OF,
+  bitFor,
+  candidates,
+  digitsOf,
+  emptyGrid,
+  formatGrid,
+  isComplete,
+  isValidGrid,
+  lowestDigit,
+  parseGrid,
+  popcount,
+} from './grid.js';
+
 import type { Grid, Level, Puzzle, Rating } from './types.js';
 
 /**
@@ -79,16 +107,6 @@ export function solve(grid: Grid): Grid | null {
 /** How many solutions `grid` has, counting no further than `limit`. */
 export function countSolutions(grid: Grid, limit: number): number {
   throw new NotImplemented('WP-B', 'countSolutions', grid, limit);
-}
-
-/** True when no digit repeats in any row, column or box. Zeros are ignored. */
-export function isValidGrid(grid: Grid): boolean {
-  throw new NotImplemented('WP-B', 'isValidGrid', grid);
-}
-
-/** True when `grid` is valid and has no empty cell. */
-export function isComplete(grid: Grid): boolean {
-  throw new NotImplemented('WP-B', 'isComplete', grid);
 }
 
 // --- WP-C ---------------------------------------------------------------
