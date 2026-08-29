@@ -6,11 +6,10 @@ import { defineWorkspace } from 'vitest/config';
 //
 // Wave-2 notes:
 //   - WP-E's server tests are `apps/web/src/server/**/*.test.ts` and land in the
-//     existing `web` project below; nothing here needs changing.
-//   - WP-F's client/component tests need a DOM. Add a third project
-//     (name: 'web-client', environment: 'jsdom', include:
-//     ['src/client/**/*.test.tsx']) and narrow `web`'s include to src/server —
-//     that is the only edit this file is expected to take.
+//     existing `web` project below.
+//   - WP-F's client/component tests need a DOM, so they are their own project
+//     (`web-client`, jsdom) and `web` is narrowed to src/server. That split was
+//     the edit this file was written expecting; it has now been made.
 export default defineWorkspace([
   {
     test: {
@@ -25,10 +24,19 @@ export default defineWorkspace([
       name: 'web',
       root: './apps/web',
       environment: 'node',
-      include: ['src/**/*.test.ts'],
+      include: ['src/server/**/*.test.ts'],
       // apps/web is a contract-only skeleton until wave 2 (WP-E/WP-F). Without
       // this the whole run fails on an empty project rather than on a real test.
       passWithNoTests: true,
+    },
+  },
+  {
+    test: {
+      name: 'web-client',
+      root: './apps/web',
+      environment: 'jsdom',
+      include: ['src/client/**/*.test.ts', 'src/client/**/*.test.tsx'],
+      setupFiles: ['./src/client/test-setup.ts'],
     },
   },
 ]);
