@@ -1,0 +1,8 @@
+node_modules/
+dist/
+coverage/
+pnpm-lock.yaml
+data/
+# The plan is a hand-formatted spec document (aligned tables, deliberate
+# wrapping). Reformatting it would churn a reference artifact for no gain.
+PLAN-sudoku-puzzler.md
