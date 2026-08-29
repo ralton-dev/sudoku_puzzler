@@ -27,7 +27,7 @@
 
 import type { Elimination, Grid, Step } from '../types.js';
 import { CELL_COUNT } from '../types.js';
-import { BOX_OF, COL_OF, PEERS, ROW_OF, bitFor, candidates, digitsOf, parseGrid } from '../grid.js';
+import { BOX_OF, COL_OF, PEERS, ROW_OF, bitFor, candidates, parseGrid } from '../grid.js';
 
 /** The board plus its candidate masks. Both are mutable; techniques never write. */
 export interface TechniqueState {
@@ -164,11 +164,6 @@ export function cellList(cells: readonly number[]): string {
 /** `3 and 7`, `1, 4 and 9`. */
 export function digitList(digits: readonly number[]): string {
   return joinWords(digits.map(String));
-}
-
-/** The digits of a mask, listed. */
-export function maskList(mask: number): string {
-  return digitList(digitsOf(mask));
 }
 
 /** `row 4`, `column 7`, `box 3` for a `UNITS` index (rows 0-8, cols 9-17, boxes 18-26). */

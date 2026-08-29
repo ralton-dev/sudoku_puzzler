@@ -45,14 +45,6 @@ export function only(
   return strip(state, [cell], drop);
 }
 
-/** The nine cells of box `box`, ascending. */
-export function boxOf(box: number): number[] {
-  const top = Math.floor(box / 3) * 27 + (box % 3) * 3;
-  const out: number[] = [];
-  for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) out.push(top + r * 9 + c);
-  return out;
-}
-
 /** The nine cells of row `row`, ascending. */
 export function rowOf(row: number): number[] {
   return Array.from({ length: 9 }, (_, c) => row * 9 + c);
