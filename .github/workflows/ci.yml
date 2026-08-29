@@ -1,0 +1,40 @@
+# The job name `check` is a contract (WP-A): branch protection on `main` lists
+# it as a required status context. WP-G adds a second job named `docker`.
+# Nobody renames either.
+name: CI
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      # pnpm 9, pinned by the root package.json `packageManager` field.
+      - name: Enable Corepack
+        run: corepack enable
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # lint -> typecheck -> test -> build, in that order.
+      - name: Check
+        run: pnpm check
