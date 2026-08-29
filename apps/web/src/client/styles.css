@@ -260,6 +260,7 @@ body {
 }
 
 .keypad-key {
+  position: relative;
   padding: 0.75rem 0;
   font-size: 1.125rem;
   background: var(--panel);
@@ -272,6 +273,30 @@ body {
 .keypad-key:disabled {
   opacity: 0.4;
   cursor: default;
+}
+
+/* How many of this digit are on the board. Small and quiet: it is a glance,
+   not a label, and the button's aria-label carries the same number in words
+   for anyone who cannot see it. */
+.keypad-count {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 0.625rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+/* All nine placed. Disabled in value mode (the `:disabled` rule above dims the
+   key); in mark mode the key stays live, so the strike is what says "finished"
+   in both. */
+.keypad-key-full .keypad-count {
+  text-decoration: line-through;
+}
+
+.keypad-key-full:not(:disabled) {
+  color: var(--ink-soft);
 }
 
 .keypad-actions {

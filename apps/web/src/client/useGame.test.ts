@@ -11,7 +11,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ActiveGame, CellState, Digit } from '../shared/api';
-import { SAVE_DEBOUNCE_MS, useGame } from './useGame';
+import { SAVE_DEBOUNCE_MS, countDigits, useGame } from './useGame';
 
 // --- fetch double ---------------------------------------------------------
 
@@ -385,5 +385,58 @@ describe('with no active game', () => {
 
     expect(hook.result.current.status).toBe('playing');
     expect(hook.result.current.elapsedMs).toBe(HOUR_PLUS);
+  });
+});
+
+// --- digit counts ---------------------------------------------------------
+
+describe('how many of each digit are on the board', () => {
+  it('counts givens and entries alike, from the resumed board as loaded', async () => {
+    const { hook } = await mount();
+
+    // The fixture is a solved grid with one cell emptied, so every digit is
+    // complete except the one that belongs in the hole.
+    expect(hook.result.current.digitCounts[EMPTY_ANSWER]).toBe(8);
+    for (let d = 1; d <= 9; d++) {
+      if (d !== EMPTY_ANSWER) expect(hook.result.current.digitCounts[d]).toBe(9);
+    }
+  });
+
+  it('follows an entry, a clear and an overwrite', async () => {
+    const { hook } = await mount();
+    const before = hook.result.current.cells[EDIT_INDEX]?.value as Digit;
+
+    act(() => {
+      hook.result.current.clearCell(EDIT_INDEX);
+    });
+    expect(hook.result.current.digitCounts[before]).toBe(8);
+
+    act(() => {
+      hook.result.current.setValue(EDIT_INDEX, before);
+    });
+    expect(hook.result.current.digitCounts[before]).toBe(9);
+
+    // An overwrite moves one across: the old digit loses it, the new one
+    // gains it, even though the new one is already complete elsewhere.
+    const other = ((before % 9) + 1) as Digit;
+    act(() => {
+      hook.result.current.setValue(EDIT_INDEX, other);
+    });
+    expect(hook.result.current.digitCounts[before]).toBe(8);
+    expect(hook.result.current.digitCounts[other]).toBe(10);
+  });
+
+  it('counts a bare array of cells, marks and all', () => {
+    const counts = countDigits([
+      { value: 0, marks: [1, 2, 3] },
+      { value: 4, marks: [] },
+      { value: 4, marks: [9] },
+    ]);
+
+    expect(counts[4]).toBe(2);
+    // Pencil marks are not placements and never reach the count.
+    expect(counts[1]).toBe(0);
+    expect(counts[9]).toBe(0);
+    expect(counts).toHaveLength(10);
   });
 });

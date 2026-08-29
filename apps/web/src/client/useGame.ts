@@ -90,6 +90,25 @@ export function computeConflicts(cells: readonly CellState[]): ReadonlySet<numbe
 }
 
 /**
+ * How many of each digit are on the board, indexed 1-9 (slot 0 is unused, so
+ * `counts[digit]` needs no arithmetic at the call sites). Givens and entered
+ * digits count alike and correctness is irrelevant — this is "how many are
+ * placed", not "how many are right". Pencil marks are not placements and never
+ * reach it.
+ *
+ * A digit can exceed nine: a resumed board is allowed to be wrong, and the
+ * count says so rather than clamping.
+ */
+export function countDigits(cells: readonly CellState[]): number[] {
+  const counts = Array.from({ length: 10 }, () => 0);
+  for (const cell of cells) {
+    const value = cell.value;
+    if (value >= 1 && value <= 9) counts[value] = (counts[value] ?? 0) + 1;
+  }
+  return counts;
+}
+
+/**
  * The server's cells, made safe to render: always 81 of them, marks sorted and
  * in range, and a given always showing its own digit. Defensive rather than
  * distrustful — it means a truncated or partial payload degrades to a playable
@@ -121,6 +140,8 @@ export interface UseGame {
   elapsedMs: number;
   saveState: SaveState;
   conflicts: ReadonlySet<number>;
+  /** how many of each digit are on the board, indexed 1-9 */
+  digitCounts: readonly number[];
   /** indices the server said are wrong, from a 409 on complete */
   wrongCells: ReadonlySet<number>;
   completed: HistoryEntry | null;
@@ -433,6 +454,7 @@ export function useGame(): UseGame {
   }, []);
 
   const conflicts = useMemo(() => computeConflicts(cells), [cells]);
+  const digitCounts = useMemo(() => countDigits(cells), [cells]);
 
   // --- completion ---------------------------------------------------------
   // Full and valid (the plan's words): every cell filled and no conflict. The
@@ -483,6 +505,7 @@ export function useGame(): UseGame {
     elapsedMs,
     saveState,
     conflicts,
+    digitCounts,
     wrongCells,
     completed,
     loadError,

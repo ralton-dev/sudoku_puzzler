@@ -8,11 +8,12 @@
  */
 
 import { useState } from 'react';
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { CellState, Digit } from '../shared/api';
 import { Board } from './Board';
+import { countDigits } from './useGame';
 
 // Row 0: givens 5 and 3 at columns 0 and 1, the rest free.
 // Cell 2 holds an entered 5 (conflicting with the given 5 in the same row and
@@ -71,6 +72,7 @@ function Harness({ spies, startInMarkMode = false }: { spies: Spies; startInMark
         selected={selected}
         onSelect={setSelected}
         conflicts={new Set([0, 2])}
+        digitCounts={countDigits(cells)}
         wrongCells={new Set([4])}
         markMode={markMode}
         onSetValue={(index, digit) => {
@@ -342,5 +344,42 @@ describe('selection after an edit', () => {
     // selects the top-left cell rather than doing nothing.
     await user.keyboard('{ArrowDown}');
     expect(selectedCells()).toEqual([0]);
+  });
+});
+
+describe('a digit that is already placed nine times', () => {
+  it('is a no-op in value mode, and leaves the selection where it was', async () => {
+    const { spies, user } = setup();
+
+    await user.click(screen.getByTestId('cell-3'));
+    await user.keyboard('9');
+
+    expect(spies.setValue).not.toHaveBeenCalled();
+    // Nothing landed, so there is nothing to deselect for.
+    expect(selectedCells()).toEqual([3]);
+  });
+
+  it('is still a pencil mark, by Shift or by mark mode', async () => {
+    const shifted = setup();
+    await shifted.user.click(screen.getByTestId('cell-3'));
+    await shifted.user.keyboard('{Shift>}9{/Shift}');
+    expect(shifted.spies.toggleMark).toHaveBeenCalledWith(3, 9);
+
+    cleanup();
+
+    const marked = setup(true);
+    await marked.user.click(screen.getByTestId('cell-3'));
+    await marked.user.keyboard('9');
+    expect(marked.spies.toggleMark).toHaveBeenCalledWith(3, 9);
+    expect(marked.spies.setValue).not.toHaveBeenCalled();
+  });
+
+  it('still lets an incomplete digit through', async () => {
+    const { spies, user } = setup();
+
+    await user.click(screen.getByTestId('cell-3'));
+    await user.keyboard('6');
+
+    expect(spies.setValue).toHaveBeenCalledWith(3, 6);
   });
 });

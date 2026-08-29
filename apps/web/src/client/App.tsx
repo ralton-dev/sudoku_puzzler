@@ -97,6 +97,7 @@ function GamePage({ game }: { game: UseGame }) {
         selected={selected}
         onSelect={onSelect}
         conflicts={game.conflicts}
+        digitCounts={game.digitCounts}
         wrongCells={game.wrongCells}
         markMode={markMode}
         onSetValue={game.setValue}
@@ -111,6 +112,7 @@ function GamePage({ game }: { game: UseGame }) {
         onToggleMark={game.toggleMark}
         onClear={game.clearCell}
         onSelect={onSelect}
+        digitCounts={game.digitCounts}
         locked={selected !== null && game.isGiven(selected)}
       />
     </section>

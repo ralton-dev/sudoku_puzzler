@@ -22,6 +22,11 @@
  * of those is something a player does repeatedly to the same square. An arrow
  * key with nothing selected still selects cell 0, which is what makes the
  * keyboard usable again straight after an entry.
+ *
+ * A digit already placed nine times cannot be placed a tenth time: in value
+ * mode the key is simply ignored, matching the keypad's disabled button. It is
+ * the only refusal besides a given, and it is not a correctness judgement —
+ * conflicts stay highlighted and never blocked.
  */
 
 import { useCallback, useRef, type KeyboardEvent as ReactKeyboardEvent } from 'react';
@@ -34,6 +39,8 @@ export interface BoardProps {
   selected: number | null;
   onSelect: (index: number | null) => void;
   conflicts: ReadonlySet<number>;
+  /** how many of each digit are on the board, indexed 1-9 (`useGame`) */
+  digitCounts: readonly number[];
   wrongCells: ReadonlySet<number>;
   markMode: boolean;
   onSetValue: (index: number, digit: Digit) => void;
@@ -65,6 +72,7 @@ export function Board({
   selected,
   onSelect,
   conflicts,
+  digitCounts,
   wrongCells,
   markMode,
   onSetValue,
@@ -138,10 +146,13 @@ export function Board({
         onToggleMark(selected, digit);
         return;
       }
+      // All nine are already on the board. A mark would still have been fine —
+      // that branch is above — but there is no tenth 7 to place.
+      if ((digitCounts[digit] ?? 0) >= 9) return;
       onSetValue(selected, digit as Digit);
       onSelect(null);
     },
-    [isGiven, markMode, move, onClear, onSelect, onSetValue, onToggleMark, selected],
+    [digitCounts, isGiven, markMode, move, onClear, onSelect, onSetValue, onToggleMark, selected],
   );
 
   const select = useCallback(

@@ -6,6 +6,12 @@
  * meaning with it. Holding Shift on a keyboard inverts it (see `Board`), so the
  * two never fight.
  *
+ * Each key carries a count of how many of that digit are on the board, and a
+ * digit that is already placed nine times is disabled — in value mode only.
+ * Mark mode keeps every key live, because a pencil mark is a note, not a
+ * placement, and a player marks candidates for digits they have finished
+ * placing all the time. `Board`'s keyboard path makes the same distinction.
+ *
  * Entering a digit clears the selection here exactly as it does on the
  * keyboard. The rule is duplicated in the two input surfaces rather than
  * hoisted into `App`, because it belongs to the act of entering a digit and
@@ -14,6 +20,17 @@
  */
 
 import type { Digit } from '../shared/api';
+
+/** All nine of a digit are on the board; there is no tenth one to place. */
+const COMPLETE = 9;
+
+/**
+ * Counts as words in the accessible label. "enter 3, 3 placed" is read as two
+ * unrelated numbers; "enter 3, three placed" is a sentence.
+ */
+const SPELLED = ['none', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+
+const spell = (count: number): string => SPELLED[count] ?? String(count);
 
 export interface KeypadProps {
   selected: number | null;
@@ -24,6 +41,8 @@ export interface KeypadProps {
   onClear: (index: number) => void;
   /** same signature as `Board`'s: a digit press clears the selection with null */
   onSelect: (index: number | null) => void;
+  /** how many of each digit are on the board, indexed 1-9 (`useGame`) */
+  digitCounts: readonly number[];
   /** the selected cell is a given, so nothing can be entered into it */
   locked: boolean;
 }
@@ -36,6 +55,7 @@ export function Keypad({
   onToggleMark,
   onClear,
   onSelect,
+  digitCounts,
   locked,
 }: KeypadProps) {
   const disabled = selected === null || locked;
@@ -43,26 +63,34 @@ export function Keypad({
   return (
     <div className="keypad">
       <div className="keypad-digits">
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => (
-          <button
-            key={digit}
-            type="button"
-            className="keypad-key"
-            disabled={disabled}
-            aria-label={markMode ? `toggle mark ${digit}` : `enter ${digit}`}
-            onClick={() => {
-              if (selected === null) return;
-              if (markMode) {
-                onToggleMark(selected, digit);
-                return;
-              }
-              onSetValue(selected, digit as Digit);
-              onSelect(null);
-            }}
-          >
-            {digit}
-          </button>
-        ))}
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => {
+          const count = digitCounts[digit] ?? 0;
+          const full = count >= COMPLETE;
+          const verb = markMode ? `toggle mark ${digit}` : `enter ${digit}`;
+          return (
+            <button
+              key={digit}
+              type="button"
+              className={full ? 'keypad-key keypad-key-full' : 'keypad-key'}
+              disabled={disabled || (full && !markMode)}
+              aria-label={`${verb}, ${spell(count)} placed`}
+              onClick={() => {
+                if (selected === null) return;
+                if (markMode) {
+                  onToggleMark(selected, digit);
+                  return;
+                }
+                onSetValue(selected, digit as Digit);
+                onSelect(null);
+              }}
+            >
+              {digit}
+              <span className="keypad-count" aria-hidden="true">
+                {count}
+              </span>
+            </button>
+          );
+        })}
       </div>
       <div className="keypad-actions">
         <button
