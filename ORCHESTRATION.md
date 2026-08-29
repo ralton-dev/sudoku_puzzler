@@ -113,8 +113,8 @@ lockfile, both sequenced above.
 | **WP-D**  | rater engine + techniques 1–10 + level targeting | 4    | **done**                                       |
 | **WP-D2** | techniques 11–14, calibration, flip the pin      | 5    | **done** — the pin is a plain `it` (`83805a3`) |
 | **WP-G**  | integration, e2e, container                      | 6    | **done** — this file, `f3ae48b`..              |
-| WP-T1     | mine training examples                           | 6    | in progress, concurrent with WP-G              |
-| WP-T2     | training section in the client                   | 7    | pending                                        |
+| WP-T1     | mine training examples                           | 6    | **done** — `aab4349`..`906637e`                |
+| WP-T2     | training section in the client                   | 7    | **done** — `e6d154b`..`42b7c45`                |
 
 ## What WP-A left for wave 2
 
@@ -232,8 +232,9 @@ Things that cost someone an afternoon. Read before repeating them.
    but anything that transpiles and lets Node load the result (Playwright, or a
    bare `node` against the unbundled `tsc` output) fails on any
    `import … from 'sudoku-core'`. `apps/web/e2e` imports `grid`/`solver` by
-   path for that reason. If the library is ever consumed unbundled, that import
-   needs `with { type: 'json' }`.
+   path for that reason. **Fixed in `906637e`**: the import now carries
+   `with { type: 'json' }` (`training/index.ts`) and the barrel loads under
+   plain Node; keep the attribute — bundlers emit identical output either way.
 8. **The awkward fixture's six pencil marks are stored but not drawn.**
    `awkward.ts` puts them on cells that also carry a digit, and `Cell.tsx` hides
    marks behind a digit deliberately (a resumed board should look like the one
