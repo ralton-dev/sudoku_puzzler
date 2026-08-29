@@ -30,13 +30,30 @@ twice in a row without changing something.
 ## Boot
 
 ```
-pnpm --filter web dev
+pnpm --filter web build:client   # once, so there is a client to serve
+pnpm --filter web dev            # tsx watch on the server
 ```
 
-Not wired yet — WP-E lands the Fastify server, WP-F the Vite client and the dev
-script. Until then there is nothing to boot. Once it exists: one process, one
-port (`PORT`, default 8080), SQLite under `DATA_DIR` (default `./data`),
-decisions 6 and 7. `curl localhost:8080/api/game` → 204 on a fresh `DATA_DIR`.
+One process, one port (`PORT`, default 8080), SQLite under `DATA_DIR` (default
+`./data`) — decisions 6 and 7. `curl localhost:8080/api/game` → 204 on a fresh
+`DATA_DIR`.
+
+`dev` stays **server-only** and is not going to run both halves concurrently.
+The alternative was a `concurrently` dependency wrapping `tsx watch` and `vite`,
+and it would have made the everyday boot a _different_ shape from the one that
+ships: decision 7 is one process serving the API and the static client, and that
+is exactly what `dev` is. Working on the client, run `pnpm --filter web
+dev:client` alongside it — Vite on 5173 with hot reload, proxying `/api` to 8080
+(`API_PROXY_TARGET` moves the target). Working on anything else, the built
+client is served by the same server and there is one URL.
+
+For the real thing, `docker compose up --build` (decision 6's volume included);
+`HOST_PORT` moves it off 8080.
+
+The e2e is `pnpm --filter web e2e` (`e2e:install` once for the browser). It
+builds first and boots two servers of its own on 18090/18091 with throwaway
+databases under the system temp directory, so it never touches `./data` and
+never collides with a server you have running.
 
 ## Rules for every package
 
@@ -86,18 +103,18 @@ lockfile, both sequenced above.
 
 ## Package ledger
 
-| WP       | what                                             | wave | status                               |
-| -------- | ------------------------------------------------ | ---- | ------------------------------------ |
-| **WP-A** | scaffold, contract, pin, CI                      | 1    | **done** — commits `fb42c78`..(this) |
-| WP-B     | solver + grid utilities                          | 2    | pending                              |
-| WP-E     | server: SQLite persistence + the five routes     | 2    | pending                              |
-| WP-F     | client: playable board, level picker, history    | 2    | pending                              |
-| WP-C     | reductive generator with injected rater          | 3    | pending                              |
-| WP-D     | rater engine + techniques 1–10 + level targeting | 4    | pending                              |
-| WP-D2    | techniques 11–14, calibration, flip the pin      | 5    | pending                              |
-| WP-G     | integration, e2e, container                      | 6    | pending                              |
-| WP-T1    | mine training examples                           | 6    | pending                              |
-| WP-T2    | training section in the client                   | 7    | pending                              |
+| WP        | what                                             | wave | status                                         |
+| --------- | ------------------------------------------------ | ---- | ---------------------------------------------- |
+| **WP-A**  | scaffold, contract, pin, CI                      | 1    | **done** — `fb42c78`..                         |
+| **WP-B**  | solver + grid utilities                          | 2    | **done**                                       |
+| **WP-E**  | server: SQLite persistence + the five routes     | 2    | **done**                                       |
+| **WP-F**  | client: playable board, level picker, history    | 2    | **done**                                       |
+| **WP-C**  | reductive generator with injected rater          | 3    | **done**                                       |
+| **WP-D**  | rater engine + techniques 1–10 + level targeting | 4    | **done**                                       |
+| **WP-D2** | techniques 11–14, calibration, flip the pin      | 5    | **done** — the pin is a plain `it` (`83805a3`) |
+| **WP-G**  | integration, e2e, container                      | 6    | **done** — this file, `f3ae48b`..              |
+| WP-T1     | mine training examples                           | 6    | in progress, concurrent with WP-G              |
+| WP-T2     | training section in the client                   | 7    | pending                                        |
 
 ## What WP-A left for wave 2
 
@@ -131,10 +148,96 @@ lockfile, both sequenced above.
 
 ## CI
 
-`.github/workflows/ci.yml`, one job named **`check`**. That name is a contract:
-branch protection on `main` lists it as a required status context. WP-G adds a
-second job named **`docker`** and asks the human to add that context. Nobody
-renames either.
+`.github/workflows/ci.yml`, two jobs, both names contracts: **`check`** and
+**`docker`**. Branch protection on `main` lists them as required status
+contexts. `check` was WP-A's; `docker` is WP-G's and **the human still has to
+add `docker` to the required-check list** — the tree cannot do it.
+
+`check` is `pnpm check` plus the Playwright e2e. The e2e is deliberately _not_ a
+third job: a third job would be a third required context to negotiate, and the
+e2e has nothing to say that `check` should not already be saying. Chromium is
+cached on the lockfile hash.
+
+`docker` builds the image (no push — publishing it is out of scope, see the
+README) and then runs it: 204 on a fresh volume, 201 on `POST {level:medium}`.
+Building only proves it compiles; better-sqlite3 is a native module and the
+runtime stage has no compiler, so booting it is the half that could fail.
 
 `.github/workflows/codeql.yml` runs javascript-typescript analysis on push, PR
 and weekly; it is not a required check.
+
+## Generation latency, and why there is no `puzzle_pool`
+
+The plan (WP-G) said: add a server-side pre-generation pool in a `puzzle_pool`
+table if `diabolical` takes more than 3 s to generate on the Mac, and don't if
+it doesn't. It doesn't. **No pool was added.**
+
+Measured through the real, built server — `node dist/server/index.js`, real
+`generate({level, seed: Date.now()})`, 5 × `POST /api/game` per level, the row
+deleted between calls, timed as the full HTTP round trip (M-series MacBook Pro,
+Node 22, 2026-08-29):
+
+| level        | median | worst | samples (ms)      |
+| ------------ | ------ | ----- | ----------------- |
+| `beginner`   | 3 ms   | 25 ms | 2, 3, 3, 3, 25    |
+| `easy`       | 4 ms   | 5 ms  | 3, 4, 4, 4, 5     |
+| `medium`     | 3 ms   | 4 ms  | 2, 2, 3, 4, 4     |
+| `tricky`     | 18 ms  | 33 ms | 5, 14, 18, 32, 33 |
+| `fiendish`   | 20 ms  | 22 ms | 8, 17, 20, 21, 22 |
+| `diabolical` | 7 ms   | 21 ms | 4, 6, 7, 11, 21   |
+
+Worst case across all six levels is **33 ms**, two orders of magnitude inside
+the budget, and that figure includes Fastify, the uniqueness re-check on the
+insert path (`checkServable`) and the SQLite write. `tricky` is the slow one,
+not `diabolical` — the same inversion WP-D2 measured in `level.test.ts`, and it
+is not noise: `tricky`'s band is narrow and sits directly under the cheap
+techniques' ceiling, so the digger overshoots and steps back more often than it
+does for a level that can use anything.
+
+A pool would therefore have bought nothing and cost a table, a migration, a
+background writer and a new way for the one-active-game invariant to be wrong.
+Revisit only if the numbers move by ~50×.
+
+## Pitfalls, learned the hard way
+
+Things that cost someone an afternoon. Read before repeating them.
+
+1. **The partial unique index must be on the expression, not the column.**
+   `CREATE UNIQUE INDEX ... ON games (completed_at) WHERE completed_at IS NULL`
+   enforces _nothing_ — every row in that index holds NULL, and SQL considers
+   NULLs distinct, so any number of rows fit. `ON games ((completed_at IS NULL))`
+   gives every active row the same non-NULL key, which is what makes decision 8
+   a constraint the database keeps rather than a promise the route makes.
+   `001_init.sql` says so at the point of use; don't "simplify" it.
+2. **Decision 17's step-back budget spans multiple dig passes**, not one. It is
+   a budget for the whole `generatePuzzle` call, and reading it as per-pass makes
+   the generator give up far too early on the hard bands.
+3. **SOTD's `multipleLines` already covers box/line reduction.** Don't add a
+   separate box/line-reduction technique — decision 16's fourteen are the whole
+   ladder and its costs are calibrated as a set.
+4. **An `it.fails` pin flips to red the moment the gap closes.** That is the
+   alarm working, not a break: it means the thing the pin was waiting for now
+   works and the pin owes an edit to a plain `it`. WP-D2 did that in `83805a3`.
+5. **`pnpm-lock.yaml` is committed by the orchestrator only**, once, after a
+   wave lands. Adding deps to your own `package.json` is fine; staging the lock
+   is not.
+6. **Dependabot major PRs #1–#7 are parked.** vitest 3 and 4 need the config
+   moved to `test.projects` (the `vitest.workspace.ts` file is deprecated in
+   both); #3's vite bump is spurious. Leave them until someone takes the vitest
+   migration deliberately.
+7. **`sudoku-core`'s barrel is not loadable by plain Node ESM.**
+   `src/training/index.ts` does `import examples from './examples.json'`, which
+   Node requires an import attribute for. Everything in the tree survives
+   because everything bundles — vite, vitest and esbuild all inline the JSON —
+   but anything that transpiles-and-lets-Node-load (Playwright, a bare `node
+dist/...` against unbundled output) fails on `import { … } from
+'sudoku-core'`. `apps/web/e2e` imports `grid`/`solver` by path for that
+   reason. If the library is ever consumed unbundled, that import needs
+   `with { type: 'json' }`.
+8. **The awkward fixture's six pencil marks are stored but not drawn.**
+   `awkward.ts` puts them on cells that also carry a digit, and `Cell.tsx` hides
+   marks behind a digit deliberately (a resumed board should look like the one
+   the player left, not a tidied-up version). So the fixture is awkward in the
+   database and one-marked-cell-short of awkward on screen. The e2e asserts the
+   six in the row and the _rendered_ count against that rule, rather than
+   pretending they are visible.
