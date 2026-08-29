@@ -1,0 +1,16 @@
+{
+  // The e2e sources are outside `apps/web/tsconfig.json`'s `include` (which is
+  // the shipped code: `src/**` and the vite config). They still have to be
+  // type-checked, so they get their own project, and `pnpm --filter web
+  // typecheck` runs both. Playwright only transpiles — nothing else would ever
+  // notice a type error in here.
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    // DOM because `page.evaluate` bodies run in the browser, and the specs
+    // import client modules; node because they open SQLite and read env.
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "types": ["node"]
+  },
+  "include": ["**/*.ts", "../playwright.config.ts"]
+}
