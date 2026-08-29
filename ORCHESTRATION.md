@@ -247,3 +247,12 @@ Things that cost someone an afternoon. Read before repeating them.
    Artefact paths are resolved from `import.meta.url`, default under a
    gitignored `test-results/`, overridable by an env var — and writing one never
    fails a test, because a screenshot is evidence, not an assertion.
+10. **Never assert a state the app is in the middle of destroying.** The e2e
+    checked that all 81 cells were filled, but the client attempts completion
+    the instant the grid is full and valid and unmounts the board on success —
+    so the assertion was racing the app's own success path. It won locally and
+    lost in CI, where the failure screenshot showed "Solved — medium in 00:02".
+    The fix was not a longer timeout: it was to assert the durable thing the
+    server wrote (the completed row's cells) instead of the transient thing on
+    screen. If an assertion can only be true for a few milliseconds, it is the
+    wrong assertion.

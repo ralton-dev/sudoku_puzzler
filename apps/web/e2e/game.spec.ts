@@ -25,7 +25,8 @@ import { expect, test } from '@playwright/test';
 // needs the barrel, so it takes the two modules it actually uses.
 import { parseGrid } from '../../../packages/sudoku-core/src/grid';
 import { countSolutions } from '../../../packages/sudoku-core/src/solver';
-import { expectBoardFull, fillFromSolution, openCells, shoot } from './board';
+import { fillFromSolution, openCells, shoot } from './board';
+import type { CellState } from '../src/shared/api';
 import { activeRow, completedRows } from './db';
 import { PRODUCTION } from './servers';
 
@@ -94,14 +95,31 @@ test('a generated medium puzzle survives a reload and completes into history', a
   });
 
   await test.step('fill the rest from the solution stored in SQLite', async () => {
-    await fillFromSolution(page, game.givens, game.solution, { skip: probes });
-    await expectBoardFull(page);
+    const typed = await fillFromSolution(page, game.givens, game.solution, { skip: probes });
+    expect(typed).toBe(open.length - probes.length);
   });
 
   await test.step('the server verifies completion (decision 10)', async () => {
+    // Nothing here looks at the board, and that is the point. The client
+    // attempts completion the instant the last cell makes the grid full and
+    // valid, and on success it unmounts the board for the "Solved" panel — so
+    // "all 81 cells are filled" is a state that exists for a few milliseconds
+    // and is *never* safe to assert against the DOM. Doing so passed on every
+    // local run and failed CI run 33258604286 twice, with the page already
+    // showing "Solved — medium in 00:02".
+    //
+    // The durable form of the same claim is the row the server wrote. Decision
+    // 10 means it only writes one when the saved cells match the stored
+    // solution, so reading those cells back is a stronger statement than
+    // counting digits on screen ever was: not just full, but right.
     await expect(page.getByTestId('completion')).toBeVisible();
     await expect(page.getByTestId('completion')).toContainText('medium');
     await shoot(page, 'production-completed');
+
+    const finished = completedRows(PRODUCTION)[0];
+    expect(finished?.id).toBe(game.id);
+    const saved = JSON.parse(finished?.cells_json ?? '[]') as CellState[];
+    expect(saved.map((cell) => cell.value).join('')).toBe(game.solution);
   });
 
   await test.step('history has one row, with a non-zero elapsed time', async () => {

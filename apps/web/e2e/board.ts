@@ -10,7 +10,7 @@
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { expect, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 /**
  * Where the narrative screenshots land.
@@ -88,9 +88,4 @@ export async function fillFromSolution(
     await enterDigit(page, index, Number(solution[index]));
   }
   return targets.length;
-}
-
-/** Every square shows something — the precondition for the completion attempt. */
-export async function expectBoardFull(page: Page): Promise<void> {
-  await expect(page.locator('[data-testid=board] .cell-value')).toHaveCount(81);
 }

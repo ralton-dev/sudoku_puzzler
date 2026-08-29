@@ -33,7 +33,11 @@ export default defineConfig({
   workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? [['github'], ['list']] : [['list']],
+  // `html` in CI is not decoration: run 33258604286 failed and uploaded
+  // nothing, because no reporter ever wrote `playwright-report/`, so the trace
+  // and the page snapshot died with the runner and the failure had to be
+  // diagnosed from server logs. The report carries both.
+  reporter: process.env.CI ? [['github'], ['list'], ['html', { open: 'never' }]] : [['list']],
   // Generation for `diabolical` is the long pole; 90 s leaves room for a bad
   // seed run without letting a hang sit there for ten minutes.
   timeout: 90_000,
