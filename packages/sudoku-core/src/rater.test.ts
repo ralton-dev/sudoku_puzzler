@@ -5,49 +5,24 @@ import { COSTS, LADDER } from './techniques/index.js';
 import { SCORE_BANDS, levelOf, rate } from './rater.js';
 
 /**
- * ## The six fixtures: our decision-16 score against sudokuoftheday.com's
+ * ## The six fixtures, end to end
  *
- * Measured on this Mac, node 22, `pnpm vitest run --project sudoku-core`:
+ * The score-against-SOTD table, the deltas and what they mean now live in
+ * `calibration.test.ts` (WP-D2) — one place, measured once. What this file
+ * keeps is the structural half: whatever the ladder decides, every step it
+ * traces has to change something, read like a sentence, name a rung that is on
+ * the ladder, and add up to the score by decision 16's cost table.
  *
- * | fixture    | SOTD score | SOTD's band | our score | our band  | rate() |
- * | ---------- | ---------- | ----------- | --------- | --------- | ------ |
- * | beginner   |       4200 | beginner    |      4200 | beginner  | 0.8 ms |
- * | easy       |       5000 | easy        |      5000 | easy      | 0.3 ms |
- * | medium     |       6450 | medium      |      6450 | medium    | 1.7 ms |
- * | tricky     |       8750 | fiendish    |      8950 | fiendish  | 1.6 ms |
- * | fiendish   |       9800 | fiendish    |      9800 | fiendish  | 1.3 ms |
- * | diabolical |      12950 | diabolical  |      null | —         | 1.2 ms |
- *
- * Four of the five land on SOTD's published number **exactly**; the fifth,
- * tricky, is 200 out and in the same band. `diabolical` is `null` because the
- * ladder stalls without techniques 11..14 — expected here, and WP-D2's job.
- *
- * The tricky trace is the one to look at if that 200 ever needs explaining:
- * `{nakedSingle: 43, hiddenSingle: 14, candidateLines: 2, doublePairs: 1,
- * multipleLines: 1, hiddenPair: 1}`. Everything else charges the same steps
- * SOTD's own solver would.
- *
- * "SOTD's band" is `levelOf(sotdScore)`, not the label SOTD publishes: the
- * tricky fixture's 8750 is a legitimate tricky for them (their range is
- * 6500-9300) and a legitimate fiendish for decision 16, which resolves the
- * published overlaps by lower bound. That is the KNOWN DISCREPANCY note at the
- * top of `fixtures/known.ts`, and it is why the assertion below is
- * `levelOf(ours) === levelOf(sotdScore)` rather than `=== fixture.level`.
+ * All six rate. The `diabolical` fixture stalled here until WP-D2 landed
+ * Forcing Chains; it no longer does, so the loop below has no special case.
  */
 describe('rate — the six sudokuoftheday.com fixtures', () => {
   for (const fixture of KNOWN_PUZZLES) {
     const rating = rate(parseGrid(fixture.givens));
 
-    if (fixture.level === 'diabolical') {
-      it('stalls on diabolical, which needs techniques 11-14 (WP-D2)', () => {
-        expect(rating).toBeNull();
-      });
-      continue;
-    }
-
-    it(`scores the ${fixture.level} fixture in the same band as SOTD does`, () => {
+    it(`finishes the ${fixture.level} fixture without stalling`, () => {
       expect(rating).not.toBeNull();
-      expect(levelOf((rating as { score: number }).score)).toBe(levelOf(fixture.sotdScore));
+      expect(rating?.steps.length).toBeGreaterThan(0);
     });
 
     it(`traces the ${fixture.level} fixture with steps that all change something`, () => {
