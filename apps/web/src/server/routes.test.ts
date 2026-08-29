@@ -222,3 +222,11 @@ describe('unknown routes', () => {
     expect(res.statusCode).toBe(404);
   });
 });
+
+describe('SPA fallback', () => {
+  it('is off entirely when no client is built', async () => {
+    for (const url of ['/', '/history', '/assets/app.js']) {
+      expect((await h.app.inject({ method: 'GET', url })).statusCode).toBe(404);
+    }
+  });
+});

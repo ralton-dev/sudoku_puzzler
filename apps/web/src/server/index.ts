@@ -66,8 +66,14 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   }
 
   app.setNotFoundHandler((request, reply) => {
-    // SPA fallback: any non-API GET that isn't a real file is a client route.
-    if (serveClient && request.method === 'GET' && !request.url.startsWith('/api/')) {
+    // SPA fallback: a non-API GET for something that looks like a client route
+    // gets index.html so the router can handle it. A request that looks like a
+    // *file* (a last segment with an extension) does not — a missing bundle
+    // should 404 rather than quietly return HTML with a 200, which is how a
+    // broken asset path turns into an unreadable console error.
+    const path = request.url.split('?')[0] ?? '/';
+    const looksLikeFile = /\.[a-z0-9]+$/i.test(path.slice(path.lastIndexOf('/')));
+    if (serveClient && request.method === 'GET' && !path.startsWith('/api/') && !looksLikeFile) {
       return reply.type('text/html').sendFile('index.html');
     }
     return reply.code(404).send({ error: 'not-found' });
