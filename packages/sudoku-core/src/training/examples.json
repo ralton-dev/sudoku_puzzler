@@ -1,0 +1,1974 @@
+[
+  {
+    "technique": "nakedSingle",
+    "grid": "907562301460130009010000800740309106650000083301605097006000070500093014804716502",
+    "eliminated": [],
+    "step": {
+      "technique": "nakedSingle",
+      "cells": [1],
+      "units": [0, 10, 18],
+      "placements": [
+        {
+          "cell": 1,
+          "digit": 8
+        }
+      ],
+      "eliminations": [],
+      "reason": "r1c2 has only one candidate left, so it must be 8."
+    }
+  },
+  {
+    "technique": "nakedSingle",
+    "grid": "987562301460130009010000800740309106650000083301605097006000070500093014804716502",
+    "eliminated": [],
+    "step": {
+      "technique": "nakedSingle",
+      "cells": [7],
+      "units": [0, 16, 20],
+      "placements": [
+        {
+          "cell": 7,
+          "digit": 4
+        }
+      ],
+      "eliminations": [],
+      "reason": "r1c8 has only one candidate left, so it must be 4."
+    }
+  },
+  {
+    "technique": "nakedSingle",
+    "grid": "987562341460130009010000800740309106650000083301605097006000070500093014804716502",
+    "eliminated": [],
+    "step": {
+      "technique": "nakedSingle",
+      "cells": [18],
+      "units": [2, 9, 18],
+      "placements": [
+        {
+          "cell": 18,
+          "digit": 2
+        }
+      ],
+      "eliminations": [],
+      "reason": "r3c1 has only one candidate left, so it must be 2."
+    }
+  },
+  {
+    "technique": "nakedSingle",
+    "grid": "987562341460130009210000800740309106650000083301605097006000070500093014804716502",
+    "eliminated": [],
+    "step": {
+      "technique": "nakedSingle",
+      "cells": [11],
+      "units": [1, 11, 18],
+      "placements": [
+        {
+          "cell": 11,
+          "digit": 5
+        }
+      ],
+      "eliminations": [],
+      "reason": "r2c3 has only one candidate left, so it must be 5."
+    }
+  },
+  {
+    "technique": "nakedSingle",
+    "grid": "987562341465130009210000800740309106650000083301605097006000070500093014804716502",
+    "eliminated": [],
+    "step": {
+      "technique": "nakedSingle",
+      "cells": [16],
+      "units": [1, 16, 20],
+      "placements": [
+        {
+          "cell": 16,
+          "digit": 2
+        }
+      ],
+      "eliminations": [],
+      "reason": "r2c8 has only one candidate left, so it must be 2."
+    }
+  },
+  {
+    "technique": "hiddenSingle",
+    "grid": "100378269003964700007125300000859123000432000382617000009581600001746900768293001",
+    "eliminated": [],
+    "step": {
+      "technique": "hiddenSingle",
+      "cells": [16],
+      "units": [1],
+      "placements": [
+        {
+          "cell": 16,
+          "digit": 1
+        }
+      ],
+      "eliminations": [],
+      "reason": "r2c8 is the only square in row 2 that can still take a 1."
+    }
+  },
+  {
+    "technique": "hiddenSingle",
+    "grid": "100378269003964710007125300000859123000432000382617000009581600001746900768293001",
+    "eliminated": [],
+    "step": {
+      "technique": "hiddenSingle",
+      "cells": [18],
+      "units": [2],
+      "placements": [
+        {
+          "cell": 18,
+          "digit": 6
+        }
+      ],
+      "eliminations": [],
+      "reason": "r3c1 is the only square in row 3 that can still take a 6."
+    }
+  },
+  {
+    "technique": "hiddenSingle",
+    "grid": "609005300510000690200001504125479863796538241384216759801900400957000128402100905",
+    "eliminated": [],
+    "step": {
+      "technique": "hiddenSingle",
+      "cells": [7],
+      "units": [0],
+      "placements": [
+        {
+          "cell": 7,
+          "digit": 1
+        }
+      ],
+      "eliminations": [],
+      "reason": "r1c8 is the only square in row 1 that can still take a 1."
+    }
+  },
+  {
+    "technique": "hiddenSingle",
+    "grid": "609005310510000690200001504125479863796538241384216759801900400957000128402100905",
+    "eliminated": [],
+    "step": {
+      "technique": "hiddenSingle",
+      "cells": [22],
+      "units": [2],
+      "placements": [
+        {
+          "cell": 22,
+          "digit": 9
+        }
+      ],
+      "eliminations": [],
+      "reason": "r3c5 is the only square in row 3 that can still take a 9."
+    }
+  },
+  {
+    "technique": "hiddenSingle",
+    "grid": "609005310510000690200091504125479863796538241384216759801900400957000128402100905",
+    "eliminated": [],
+    "step": {
+      "technique": "hiddenSingle",
+      "cells": [21],
+      "units": [2],
+      "placements": [
+        {
+          "cell": 21,
+          "digit": 6
+        }
+      ],
+      "eliminations": [],
+      "reason": "r3c4 is the only square in row 3 that can still take a 6."
+    }
+  },
+  {
+    "technique": "candidateLines",
+    "grid": "230705900000901302009832540978156423621483795543279060092314650300698204000527039",
+    "eliminated": [],
+    "step": {
+      "technique": "candidateLines",
+      "cells": [18, 19],
+      "units": [18, 2],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 26,
+          "digits": [1]
+        }
+      ],
+      "reason": "In box 1 the 1 can only go in r3c1 and r3c2, all on row 3, so the 1 of that line lives in this box and comes out of r3c9."
+    }
+  },
+  {
+    "technique": "candidateLines",
+    "grid": "008450003005800470490006518964513782100008345583040000256104037049005000801020054",
+    "eliminated": [],
+    "step": {
+      "technique": "candidateLines",
+      "cells": [9, 10],
+      "units": [18, 1],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 13,
+          "digits": [3]
+        }
+      ],
+      "reason": "In box 1 the 3 can only go in r2c1 and r2c2, all on row 2, so the 3 of that line lives in this box and comes out of r2c5."
+    }
+  },
+  {
+    "technique": "candidateLines",
+    "grid": "016040782007621003420870561100290600060030020002068009074352006200716300631080200",
+    "eliminated": [],
+    "step": {
+      "technique": "candidateLines",
+      "cells": [3, 5],
+      "units": [19, 0],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 0,
+          "digits": [5]
+        }
+      ],
+      "reason": "In box 2 the 5 can only go in r1c4 and r1c6, all on row 1, so the 5 of that line lives in this box and comes out of r1c1."
+    }
+  },
+  {
+    "technique": "candidateLines",
+    "grid": "820540091410029050953001042138402960692108400745090128061900204084260019279014506",
+    "eliminated": [],
+    "step": {
+      "technique": "candidateLines",
+      "cells": [31, 40],
+      "units": [22, 13],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 58,
+          "digits": [5]
+        }
+      ],
+      "reason": "In box 5 the 5 can only go in r4c5 and r5c5, all on column 5, so the 5 of that line lives in this box and comes out of r7c5."
+    }
+  },
+  {
+    "technique": "candidateLines",
+    "grid": "520370000417658293063002750300907025205036007170205030731000562052763410600521370",
+    "eliminated": [],
+    "step": {
+      "technique": "candidateLines",
+      "cells": [21, 22],
+      "units": [19, 2],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 26,
+          "digits": [1]
+        }
+      ],
+      "reason": "In box 2 the 1 can only go in r3c4 and r3c5, all on row 3, so the 1 of that line lives in this box and comes out of r3c9."
+    }
+  },
+  {
+    "technique": "doublePairs",
+    "grid": "419328567005649013603751040054002601106405302902100475260000154001500720500210030",
+    "eliminated": [
+      {
+        "cell": 58,
+        "digits": [7]
+      },
+      {
+        "cell": 67,
+        "digits": [3]
+      },
+      {
+        "cell": 68,
+        "digits": [3]
+      }
+    ],
+    "step": {
+      "technique": "doublePairs",
+      "cells": [9, 10, 27, 37],
+      "units": [18, 21, 24, 9, 10],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 73,
+          "digits": [7]
+        }
+      ],
+      "reason": "box 1 and box 4 each have just two places for the 7, and between them they use up column 1 and column 2. So the 7 of box 7 has to sit on column 3, and it comes out of r9c2."
+    }
+  },
+  {
+    "technique": "doublePairs",
+    "grid": "006841003850706000700950800400018200080060010002070008008007005000185092500690380",
+    "eliminated": [
+      {
+        "cell": 6,
+        "digits": [9]
+      },
+      {
+        "cell": 7,
+        "digits": [2]
+      },
+      {
+        "cell": 11,
+        "digits": [9]
+      },
+      {
+        "cell": 54,
+        "digits": [3]
+      },
+      {
+        "cell": 55,
+        "digits": [3]
+      }
+    ],
+    "step": {
+      "technique": "doublePairs",
+      "cells": [13, 16, 23, 25],
+      "units": [19, 20, 18, 1, 2],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 19,
+          "digits": [2]
+        }
+      ],
+      "reason": "box 2 and box 3 each have just two places for the 2, and between them they use up row 2 and row 3. So the 2 of box 1 has to sit on row 1, and it comes out of r3c2."
+    }
+  },
+  {
+    "technique": "doublePairs",
+    "grid": "194750032568000070732000500603120947409070003207394005871000090940017300320489701",
+    "eliminated": [
+      {
+        "cell": 42,
+        "digits": [6]
+      },
+      {
+        "cell": 43,
+        "digits": [6]
+      }
+    ],
+    "step": {
+      "technique": "doublePairs",
+      "cells": [65, 70, 74, 79],
+      "units": [24, 26, 25, 7, 8],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 66,
+          "digits": [5]
+        }
+      ],
+      "reason": "box 7 and box 9 each have just two places for the 5, and between them they use up row 8 and row 9. So the 5 of box 8 has to sit on row 7, and it comes out of r8c4."
+    }
+  },
+  {
+    "technique": "doublePairs",
+    "grid": "503104297900072800270003004852400700497001680300007042700300000105740300639005470",
+    "eliminated": [
+      {
+        "cell": 48,
+        "digits": [6]
+      },
+      {
+        "cell": 49,
+        "digits": [6]
+      },
+      {
+        "cell": 51,
+        "digits": [1]
+      }
+    ],
+    "step": {
+      "technique": "doublePairs",
+      "cells": [55, 61, 64, 70],
+      "units": [24, 26, 25, 6, 7],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 58,
+          "digits": [2]
+        }
+      ],
+      "reason": "box 7 and box 9 each have just two places for the 2, and between them they use up row 7 and row 8. So the 2 of box 8 has to sit on row 9, and it comes out of r7c5."
+    }
+  },
+  {
+    "technique": "doublePairs",
+    "grid": "006400008490758603000600040289143576543867900617295834960304000000971460174506300",
+    "eliminated": [
+      {
+        "cell": 4,
+        "digits": [2]
+      },
+      {
+        "cell": 22,
+        "digits": [2]
+      }
+    ],
+    "step": {
+      "technique": "doublePairs",
+      "cells": [58, 61, 76, 79],
+      "units": [25, 26, 24, 6, 8],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 56,
+          "digits": [8]
+        }
+      ],
+      "reason": "box 8 and box 9 each have just two places for the 8, and between them they use up row 7 and row 9. So the 8 of box 7 has to sit on row 8, and it comes out of r7c3."
+    }
+  },
+  {
+    "technique": "multipleLines",
+    "grid": "419328567005649013603751040054002601106405302902100475260000154001500720500210030",
+    "eliminated": [
+      {
+        "cell": 58,
+        "digits": [7]
+      },
+      {
+        "cell": 67,
+        "digits": [3]
+      },
+      {
+        "cell": 68,
+        "digits": [3]
+      },
+      {
+        "cell": 73,
+        "digits": [7]
+      }
+    ],
+    "step": {
+      "technique": "multipleLines",
+      "cells": [64, 71, 73, 78, 80],
+      "units": [24, 26, 25, 7, 8],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 67,
+          "digits": [9]
+        }
+      ],
+      "reason": "Across box 7 and box 9 every place for the 9 lies on row 8 or row 9, so those two lines are spoken for. box 8 must then take its 9 on row 7, and it comes out of r8c5."
+    }
+  },
+  {
+    "technique": "multipleLines",
+    "grid": "000329016060801030003406082306045800700000365008763104900600000020007600630094008",
+    "eliminated": [
+      {
+        "cell": 58,
+        "digits": [5]
+      },
+      {
+        "cell": 60,
+        "digits": [4, 5]
+      },
+      {
+        "cell": 61,
+        "digits": [2]
+      },
+      {
+        "cell": 67,
+        "digits": [5]
+      },
+      {
+        "cell": 78,
+        "digits": [5]
+      },
+      {
+        "cell": 79,
+        "digits": [2]
+      }
+    ],
+    "step": {
+      "technique": "multipleLines",
+      "cells": [34, 35, 52, 70, 71],
+      "units": [23, 26, 20, 16, 17],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 17,
+          "digits": [9]
+        }
+      ],
+      "reason": "Across box 6 and box 9 every place for the 9 lies on column 8 or column 9, so those two lines are spoken for. box 3 must then take its 9 on column 7, and it comes out of r2c9."
+    }
+  },
+  {
+    "technique": "multipleLines",
+    "grid": "730402198812079000000180720100035907007018300300947012070004000000890270608701039",
+    "eliminated": [
+      {
+        "cell": 12,
+        "digits": [6]
+      },
+      {
+        "cell": 26,
+        "digits": [4]
+      },
+      {
+        "cell": 57,
+        "digits": [2, 6]
+      }
+    ],
+    "step": {
+      "technique": "multipleLines",
+      "cells": [2, 4, 19, 20, 23],
+      "units": [18, 19, 20, 0, 2],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 26,
+          "digits": [6]
+        }
+      ],
+      "reason": "Across box 1 and box 2 every place for the 6 lies on row 1 or row 3, so those two lines are spoken for. box 3 must then take its 6 on row 2, and it comes out of r3c9."
+    }
+  },
+  {
+    "technique": "multipleLines",
+    "grid": "036152004120964305000783060000640053065300840493805006070036000600298037300071690",
+    "eliminated": [
+      {
+        "cell": 33,
+        "digits": [1]
+      },
+      {
+        "cell": 61,
+        "digits": [8]
+      }
+    ],
+    "step": {
+      "technique": "multipleLines",
+      "cells": [27, 29, 32, 36, 41],
+      "units": [21, 22, 23, 3, 4],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 33,
+          "digits": [7]
+        }
+      ],
+      "reason": "Across box 4 and box 5 every place for the 7 lies on row 4 or row 5, so those two lines are spoken for. box 6 must then take its 7 on row 6, and it comes out of r4c7."
+    }
+  },
+  {
+    "technique": "multipleLines",
+    "grid": "008090000090300807400608009046000590910564028025009600500906002109005080000070900",
+    "eliminated": [
+      {
+        "cell": 0,
+        "digits": [7]
+      },
+      {
+        "cell": 1,
+        "digits": [7]
+      },
+      {
+        "cell": 72,
+        "digits": [8]
+      },
+      {
+        "cell": 75,
+        "digits": [2]
+      },
+      {
+        "cell": 77,
+        "digits": [2]
+      }
+    ],
+    "step": {
+      "technique": "multipleLines",
+      "cells": [19, 20, 55, 56, 64],
+      "units": [18, 24, 21, 10, 11],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 38,
+          "digits": [7]
+        }
+      ],
+      "reason": "Across box 1 and box 7 every place for the 7 lies on column 2 or column 3, so those two lines are spoken for. box 4 must then take its 7 on column 1, and it comes out of r5c3."
+    }
+  },
+  {
+    "technique": "nakedPair",
+    "grid": "284715639003849005597000184900237540000951060035486900871090050050170890309508017",
+    "eliminated": [
+      {
+        "cell": 42,
+        "digits": [2]
+      },
+      {
+        "cell": 44,
+        "digits": [2]
+      }
+    ],
+    "step": {
+      "technique": "nakedPair",
+      "cells": [10, 28],
+      "units": [10],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 73,
+          "digits": [6]
+        }
+      ],
+      "reason": "r2c2 and r4c2 in column 2 hold nothing but 1 and 6 between them, so that pair owns those digits and they come out of the rest of column 2."
+    }
+  },
+  {
+    "technique": "nakedPair",
+    "grid": "906052000243760501580030006830970600600240007400683059700390010320017965100520473",
+    "eliminated": [
+      {
+        "cell": 23,
+        "digits": [1]
+      },
+      {
+        "cell": 56,
+        "digits": [8]
+      },
+      {
+        "cell": 59,
+        "digits": [8]
+      }
+    ],
+    "step": {
+      "technique": "nakedPair",
+      "cells": [34, 35],
+      "units": [3],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 29,
+          "digits": [2]
+        }
+      ],
+      "reason": "r4c8 and r4c9 in row 4 hold nothing but 2 and 4 between them, so that pair owns those digits and they come out of the rest of row 4."
+    }
+  },
+  {
+    "technique": "nakedPair",
+    "grid": "400792001028130040000840200597384126283617495164529378802951004040268900609473002",
+    "eliminated": [],
+    "step": {
+      "technique": "nakedPair",
+      "cells": [9, 17],
+      "units": [1],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 15,
+          "digits": [7]
+        }
+      ],
+      "reason": "r2c1 and r2c9 in row 2 hold nothing but 7 and 9 between them, so that pair owns those digits and they come out of the rest of row 2."
+    }
+  },
+  {
+    "technique": "nakedPair",
+    "grid": "397108002621305870548200300409013000005609000000450908003001005154000703970534080",
+    "eliminated": [
+      {
+        "cell": 25,
+        "digits": [9]
+      },
+      {
+        "cell": 42,
+        "digits": [2]
+      },
+      {
+        "cell": 43,
+        "digits": [2]
+      },
+      {
+        "cell": 52,
+        "digits": [2]
+      },
+      {
+        "cell": 57,
+        "digits": [8]
+      },
+      {
+        "cell": 58,
+        "digits": [8, 9]
+      },
+      {
+        "cell": 67,
+        "digits": [9]
+      }
+    ],
+    "step": {
+      "technique": "nakedPair",
+      "cells": [45, 50],
+      "units": [5],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 47,
+          "digits": [2]
+        }
+      ],
+      "reason": "r6c1 and r6c6 in row 6 hold nothing but 2 and 7 between them, so that pair owns those digits and they come out of the rest of row 6."
+    }
+  },
+  {
+    "technique": "nakedPair",
+    "grid": "040610823030852940208004005002043009400961002300280400624100708853476291010028064",
+    "eliminated": [],
+    "step": {
+      "technique": "nakedPair",
+      "cells": [42, 78],
+      "units": [15],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 33,
+          "digits": [5]
+        }
+      ],
+      "reason": "r5c7 and r9c7 in column 7 hold nothing but 3 and 5 between them, so that pair owns those digits and they come out of the rest of column 7."
+    }
+  },
+  {
+    "technique": "hiddenPair",
+    "grid": "156794832284563971973218000641035000539072600728040305862057100315029080497080000",
+    "eliminated": [],
+    "step": {
+      "technique": "hiddenPair",
+      "cells": [78, 79],
+      "units": [8],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 79,
+          "digits": [6]
+        }
+      ],
+      "reason": "In row 9 the digits 2 and 5 can only go in r9c7 and r9c8, so that pair fills those cells and every other candidate there can go."
+    }
+  },
+  {
+    "technique": "hiddenPair",
+    "grid": "086051040090000010410090350238514060671938425040627831003070094000000080050100670",
+    "eliminated": [
+      {
+        "cell": 8,
+        "digits": [2]
+      },
+      {
+        "cell": 17,
+        "digits": [2, 7]
+      },
+      {
+        "cell": 26,
+        "digits": [2, 7]
+      },
+      {
+        "cell": 60,
+        "digits": [2]
+      },
+      {
+        "cell": 65,
+        "digits": [2]
+      },
+      {
+        "cell": 69,
+        "digits": [2]
+      },
+      {
+        "cell": 74,
+        "digits": [2]
+      }
+    ],
+    "step": {
+      "technique": "hiddenPair",
+      "cells": [77, 80],
+      "units": [8],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 77,
+          "digits": [9]
+        }
+      ],
+      "reason": "In row 9 the digits 2 and 3 can only go in r9c6 and r9c9, so that pair fills those cells and every other candidate there can go."
+    }
+  },
+  {
+    "technique": "hiddenPair",
+    "grid": "604820509825910007030045028300000074002000306740130952400381265583060791261579003",
+    "eliminated": [
+      {
+        "cell": 29,
+        "digits": [9]
+      }
+    ],
+    "step": {
+      "technique": "hiddenPair",
+      "cells": [28, 31],
+      "units": [3],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 28,
+          "digits": [1]
+        }
+      ],
+      "reason": "In row 4 the digits 5 and 9 can only go in r4c2 and r4c5, so that pair fills those cells and every other candidate there can go."
+    }
+  },
+  {
+    "technique": "hiddenPair",
+    "grid": "008012935920700060001000070010240600200000000009065020090000800187003096542080317",
+    "eliminated": [
+      {
+        "cell": 35,
+        "digits": [8]
+      },
+      {
+        "cell": 44,
+        "digits": [8]
+      },
+      {
+        "cell": 53,
+        "digits": [8]
+      },
+      {
+        "cell": 57,
+        "digits": [6]
+      },
+      {
+        "cell": 59,
+        "digits": [6]
+      }
+    ],
+    "step": {
+      "technique": "hiddenPair",
+      "cells": [11, 13],
+      "units": [1],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 11,
+          "digits": [4]
+        }
+      ],
+      "reason": "In row 2 the digits 3 and 5 can only go in r2c3 and r2c5, so that pair fills those cells and every other candidate there can go."
+    }
+  },
+  {
+    "technique": "hiddenPair",
+    "grid": "023108050508000300961453278105000003390005062206000509630084020052000607010006030",
+    "eliminated": [
+      {
+        "cell": 70,
+        "digits": [1]
+      }
+    ],
+    "step": {
+      "technique": "hiddenPair",
+      "cells": [63, 70],
+      "units": [7],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 70,
+          "digits": [9]
+        }
+      ],
+      "reason": "In row 8 the digits 4 and 8 can only go in r8c1 and r8c8, so that pair fills those cells and every other candidate there can go."
+    }
+  },
+  {
+    "technique": "nakedTriple",
+    "grid": "000106009904050061016940835007001050000000100021605907549010678872569314163874592",
+    "eliminated": [
+      {
+        "cell": 0,
+        "digits": [3]
+      },
+      {
+        "cell": 28,
+        "digits": [3]
+      },
+      {
+        "cell": 31,
+        "digits": [2, 3]
+      },
+      {
+        "cell": 37,
+        "digits": [3]
+      }
+    ],
+    "step": {
+      "technique": "nakedTriple",
+      "cells": [0, 6, 7],
+      "units": [0],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 4,
+          "digits": [2]
+        }
+      ],
+      "reason": "r1c1, r1c7 and r1c8 in row 1 hold nothing but 2, 4 and 7 between them, so that triple owns those digits and they come out of the rest of row 1."
+    }
+  },
+  {
+    "technique": "nakedTriple",
+    "grid": "300080002000200001020004390002900030893000124060002509085120060206007000000060205",
+    "eliminated": [
+      {
+        "cell": 31,
+        "digits": [5, 7]
+      },
+      {
+        "cell": 32,
+        "digits": [5, 6]
+      },
+      {
+        "cell": 48,
+        "digits": [7]
+      },
+      {
+        "cell": 49,
+        "digits": [7]
+      }
+    ],
+    "step": {
+      "technique": "nakedTriple",
+      "cells": [3, 21, 39],
+      "units": [12],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 66,
+          "digits": [5]
+        }
+      ],
+      "reason": "r1c4, r3c4 and r5c4 in column 4 hold nothing but 5, 6 and 7 between them, so that triple owns those digits and they come out of the rest of column 4."
+    }
+  },
+  {
+    "technique": "nakedTriple",
+    "grid": "236948751080071034007030089000703495700000326053002178000007903371800502094320817",
+    "eliminated": [
+      {
+        "cell": 12,
+        "digits": [5]
+      },
+      {
+        "cell": 18,
+        "digits": [5]
+      },
+      {
+        "cell": 28,
+        "digits": [1]
+      },
+      {
+        "cell": 31,
+        "digits": [6]
+      },
+      {
+        "cell": 40,
+        "digits": [9]
+      },
+      {
+        "cell": 41,
+        "digits": [5]
+      },
+      {
+        "cell": 45,
+        "digits": [6]
+      },
+      {
+        "cell": 58,
+        "digits": [6]
+      },
+      {
+        "cell": 68,
+        "digits": [6]
+      }
+    ],
+    "step": {
+      "technique": "nakedTriple",
+      "cells": [41, 48, 49],
+      "units": [22],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 39,
+          "digits": [4]
+        }
+      ],
+      "reason": "r5c6, r6c4 and r6c5 in box 5 hold nothing but 4, 6 and 9 between them, so that triple owns those digits and they come out of the rest of box 5."
+    }
+  },
+  {
+    "technique": "nakedTriple",
+    "grid": "389050271257189060641372859004060090790000602060090700030940507970020006400000908",
+    "eliminated": [
+      {
+        "cell": 30,
+        "digits": [5]
+      },
+      {
+        "cell": 32,
+        "digits": [5]
+      },
+      {
+        "cell": 38,
+        "digits": [5]
+      },
+      {
+        "cell": 47,
+        "digits": [5]
+      },
+      {
+        "cell": 48,
+        "digits": [5]
+      },
+      {
+        "cell": 50,
+        "digits": [5]
+      },
+      {
+        "cell": 59,
+        "digits": [1]
+      },
+      {
+        "cell": 68,
+        "digits": [5, 8]
+      },
+      {
+        "cell": 77,
+        "digits": [1, 3]
+      }
+    ],
+    "step": {
+      "technique": "nakedTriple",
+      "cells": [73, 76, 79],
+      "units": [8],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 74,
+          "digits": [2]
+        }
+      ],
+      "reason": "r9c2, r9c5 and r9c8 in row 9 hold nothing but 1, 2 and 3 between them, so that triple owns those digits and they come out of the rest of row 9."
+    }
+  },
+  {
+    "technique": "nakedTriple",
+    "grid": "093700005001300000800092600000810520060207890028940700002600008086009100700008360",
+    "eliminated": [
+      {
+        "cell": 0,
+        "digits": [4]
+      },
+      {
+        "cell": 5,
+        "digits": [6]
+      },
+      {
+        "cell": 9,
+        "digits": [4, 5]
+      },
+      {
+        "cell": 13,
+        "digits": [5]
+      },
+      {
+        "cell": 14,
+        "digits": [6]
+      },
+      {
+        "cell": 17,
+        "digits": [2, 4]
+      },
+      {
+        "cell": 26,
+        "digits": [4]
+      },
+      {
+        "cell": 54,
+        "digits": [1]
+      },
+      {
+        "cell": 71,
+        "digits": [4]
+      },
+      {
+        "cell": 80,
+        "digits": [4]
+      }
+    ],
+    "step": {
+      "technique": "nakedTriple",
+      "cells": [17, 71, 80],
+      "units": [17],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 26,
+          "digits": [7]
+        }
+      ],
+      "reason": "r2c9, r8c9 and r9c9 in column 9 hold nothing but 2, 7 and 9 between them, so that triple owns those digits and they come out of the rest of column 9."
+    }
+  },
+  {
+    "technique": "hiddenTriple",
+    "grid": "068501940400080610009346070070265400042197360006834027080413200034000000000608734",
+    "eliminated": [
+      {
+        "cell": 0,
+        "digits": [2]
+      },
+      {
+        "cell": 11,
+        "digits": [5]
+      },
+      {
+        "cell": 27,
+        "digits": [9]
+      },
+      {
+        "cell": 54,
+        "digits": [5, 9]
+      },
+      {
+        "cell": 62,
+        "digits": [5]
+      },
+      {
+        "cell": 63,
+        "digits": [1, 5, 7, 9]
+      },
+      {
+        "cell": 69,
+        "digits": [5]
+      },
+      {
+        "cell": 70,
+        "digits": [9]
+      },
+      {
+        "cell": 71,
+        "digits": [5, 9]
+      },
+      {
+        "cell": 72,
+        "digits": [5]
+      },
+      {
+        "cell": 73,
+        "digits": [5]
+      }
+    ],
+    "step": {
+      "technique": "hiddenTriple",
+      "cells": [35, 62, 71],
+      "units": [17],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 35,
+          "digits": [8]
+        },
+        {
+          "cell": 71,
+          "digits": [8]
+        }
+      ],
+      "reason": "In column 9 the digits 1, 6 and 9 can only go in r4c9, r7c9 and r8c9, so that triple fills those cells and every other candidate there can go."
+    }
+  },
+  {
+    "technique": "hiddenTriple",
+    "grid": "230010750608000004001009008820700000000060000006002097400306500900000643365040070",
+    "eliminated": [
+      {
+        "cell": 37,
+        "digits": [1]
+      },
+      {
+        "cell": 38,
+        "digits": [7]
+      },
+      {
+        "cell": 46,
+        "digits": [1]
+      },
+      {
+        "cell": 55,
+        "digits": [7]
+      },
+      {
+        "cell": 64,
+        "digits": [7]
+      }
+    ],
+    "step": {
+      "technique": "hiddenTriple",
+      "cells": [3, 5, 21],
+      "units": [19],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 21,
+          "digits": [2, 5]
+        }
+      ],
+      "reason": "In box 2 the digits 4, 6 and 8 can only go in r1c4, r1c6 and r3c4, so that triple fills those cells and every other candidate there can go."
+    }
+  },
+  {
+    "technique": "hiddenTriple",
+    "grid": "506840007030610000280090060340050006025060030600070058103080092002030045400026103",
+    "eliminated": [
+      {
+        "cell": 14,
+        "digits": [7]
+      },
+      {
+        "cell": 15,
+        "digits": [4, 9]
+      },
+      {
+        "cell": 20,
+        "digits": [7]
+      },
+      {
+        "cell": 24,
+        "digits": [4]
+      },
+      {
+        "cell": 29,
+        "digits": [1, 9]
+      },
+      {
+        "cell": 32,
+        "digits": [2]
+      },
+      {
+        "cell": 36,
+        "digits": [9]
+      },
+      {
+        "cell": 44,
+        "digits": [4]
+      },
+      {
+        "cell": 48,
+        "digits": [1, 9]
+      },
+      {
+        "cell": 50,
+        "digits": [1, 2, 9]
+      },
+      {
+        "cell": 51,
+        "digits": [9]
+      },
+      {
+        "cell": 63,
+        "digits": [7]
+      },
+      {
+        "cell": 64,
+        "digits": [9]
+      },
+      {
+        "cell": 73,
+        "digits": [9]
+      },
+      {
+        "cell": 74,
+        "digits": [7]
+      }
+    ],
+    "step": {
+      "technique": "hiddenTriple",
+      "cells": [32, 41, 68],
+      "units": [14],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 41,
+          "digits": [4]
+        },
+        {
+          "cell": 68,
+          "digits": [7]
+        }
+      ],
+      "reason": "In column 6 the digits 1, 8 and 9 can only go in r4c6, r5c6 and r8c6, so that triple fills those cells and every other candidate there can go."
+    }
+  },
+  {
+    "technique": "hiddenTriple",
+    "grid": "731060482906100753850070619063097025090000367570030940305010076619702530087050090",
+    "eliminated": [
+      {
+        "cell": 38,
+        "digits": [2]
+      },
+      {
+        "cell": 39,
+        "digits": [2]
+      },
+      {
+        "cell": 75,
+        "digits": [4]
+      },
+      {
+        "cell": 77,
+        "digits": [4]
+      }
+    ],
+    "step": {
+      "technique": "hiddenTriple",
+      "cells": [21, 48, 75],
+      "units": [12],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 21,
+          "digits": [4]
+        },
+        {
+          "cell": 48,
+          "digits": [8]
+        }
+      ],
+      "reason": "In column 4 the digits 2, 3 and 6 can only go in r3c4, r6c4 and r9c4, so that triple fills those cells and every other candidate there can go."
+    }
+  },
+  {
+    "technique": "hiddenTriple",
+    "grid": "801402365306851004054003018000109007000207003407536080040705800700024501502308476",
+    "eliminated": [
+      {
+        "cell": 10,
+        "digits": [9]
+      },
+      {
+        "cell": 22,
+        "digits": [9]
+      },
+      {
+        "cell": 24,
+        "digits": [9]
+      },
+      {
+        "cell": 28,
+        "digits": [2, 6]
+      },
+      {
+        "cell": 34,
+        "digits": [2]
+      },
+      {
+        "cell": 37,
+        "digits": [9]
+      },
+      {
+        "cell": 42,
+        "digits": [9]
+      },
+      {
+        "cell": 43,
+        "digits": [9]
+      },
+      {
+        "cell": 46,
+        "digits": [9]
+      },
+      {
+        "cell": 54,
+        "digits": [9]
+      },
+      {
+        "cell": 58,
+        "digits": [9]
+      },
+      {
+        "cell": 64,
+        "digits": [9]
+      }
+    ],
+    "step": {
+      "technique": "hiddenTriple",
+      "cells": [28, 37, 64],
+      "units": [10],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 37,
+          "digits": [1]
+        }
+      ],
+      "reason": "In column 2 the digits 3, 6 and 8 can only go in r4c2, r5c2 and r8c2, so that triple fills those cells and every other candidate there can go."
+    }
+  },
+  {
+    "technique": "xWing",
+    "grid": "400327009000951740097846102709485010645132987080769405204078090073094000900213074",
+    "eliminated": [
+      {
+        "cell": 10,
+        "digits": [6]
+      }
+    ],
+    "step": {
+      "technique": "xWing",
+      "cells": [18, 25, 45, 52],
+      "units": [2, 5, 9, 16],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 9,
+          "digits": [3]
+        }
+      ],
+      "reason": "The 3 of row 3 and of row 6 each have only two places, and they line up in column 1 and column 8. Those two lines must take both 3s between them, so the 3 comes out of r2c1."
+    }
+  },
+  {
+    "technique": "xWing",
+    "grid": "108300060063001800050867103830016400600204318001038096286475931010600580000180602",
+    "eliminated": [
+      {
+        "cell": 1,
+        "digits": [9]
+      },
+      {
+        "cell": 9,
+        "digits": [9]
+      },
+      {
+        "cell": 29,
+        "digits": [5, 7]
+      },
+      {
+        "cell": 30,
+        "digits": [5]
+      },
+      {
+        "cell": 45,
+        "digits": [7]
+      },
+      {
+        "cell": 46,
+        "digits": [7]
+      }
+    ],
+    "step": {
+      "technique": "xWing",
+      "cells": [20, 25, 29, 34],
+      "units": [2, 3, 11, 16],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 16,
+          "digits": [2]
+        }
+      ],
+      "reason": "The 2 of row 3 and of row 4 each have only two places, and they line up in column 3 and column 8. Those two lines must take both 2s between them, so the 2 comes out of r2c8."
+    }
+  },
+  {
+    "technique": "xWing",
+    "grid": "453902801268310509791850032589041320617283954324509018106095283935028100802130095",
+    "eliminated": [
+      {
+        "cell": 70,
+        "digits": [7]
+      },
+      {
+        "cell": 77,
+        "digits": [4]
+      }
+    ],
+    "step": {
+      "technique": "xWing",
+      "cells": [23, 24, 77, 78],
+      "units": [2, 8, 14, 15],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 51,
+          "digits": [6]
+        }
+      ],
+      "reason": "The 6 of row 3 and of row 9 each have only two places, and they line up in column 6 and column 7. Those two lines must take both 6s between them, so the 6 comes out of r6c7."
+    }
+  },
+  {
+    "technique": "xWing",
+    "grid": "060014805108635000050009361000960750705043006620057000842591637500306904936470510",
+    "eliminated": [
+      {
+        "cell": 7,
+        "digits": [2]
+      },
+      {
+        "cell": 37,
+        "digits": [1]
+      },
+      {
+        "cell": 47,
+        "digits": [1, 4]
+      }
+    ],
+    "step": {
+      "technique": "xWing",
+      "cells": [32, 35, 77, 80],
+      "units": [3, 8, 14, 17],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 17,
+          "digits": [2]
+        }
+      ],
+      "reason": "The 2 of row 4 and of row 9 each have only two places, and they line up in column 6 and column 9. Those two lines must take both 2s between them, so the 2 comes out of r2c9."
+    }
+  },
+  {
+    "technique": "xWing",
+    "grid": "280070504706584029504010708000708600073045980008901070300890006040100800802450097",
+    "eliminated": [
+      {
+        "cell": 5,
+        "digits": [3]
+      },
+      {
+        "cell": 23,
+        "digits": [3]
+      },
+      {
+        "cell": 28,
+        "digits": [1]
+      },
+      {
+        "cell": 29,
+        "digits": [1]
+      },
+      {
+        "cell": 34,
+        "digits": [1]
+      },
+      {
+        "cell": 51,
+        "digits": [3]
+      },
+      {
+        "cell": 60,
+        "digits": [1]
+      },
+      {
+        "cell": 67,
+        "digits": [3]
+      }
+    ],
+    "step": {
+      "technique": "xWing",
+      "cells": [10, 15, 73, 78],
+      "units": [1, 8, 10, 15],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 55,
+          "digits": [1]
+        }
+      ],
+      "reason": "The 1 of row 2 and of row 9 each have only two places, and they line up in column 2 and column 7. Those two lines must take both 1s between them, so the 1 comes out of r7c2."
+    }
+  },
+  {
+    "technique": "forcingChains",
+    "grid": "304100007017009326200730001400307652630904718070600934903071005140590273700003109",
+    "eliminated": [
+      {
+        "cell": 74,
+        "digits": [2]
+      },
+      {
+        "cell": 76,
+        "digits": [2]
+      }
+    ],
+    "step": {
+      "technique": "forcingChains",
+      "cells": [38, 40, 45, 9],
+      "units": [],
+      "placements": [
+        {
+          "cell": 9,
+          "digit": 5
+        }
+      ],
+      "eliminations": [],
+      "reason": "r5c3 is either 2 or 5: a 2 there runs through r5c5 and forces r2c1 to 5, and a 5 there runs through r5c5 and r6c1 and forces r2c1 to 5. Whichever way r5c3 goes, r2c1 is 5."
+    }
+  },
+  {
+    "technique": "forcingChains",
+    "grid": "030602007702409063009375000000726189296158734187943000071264300020507001400801070",
+    "eliminated": [],
+    "step": {
+      "technique": "forcingChains",
+      "cells": [0, 10, 13, 4],
+      "units": [],
+      "placements": [
+        {
+          "cell": 4,
+          "digit": 1
+        }
+      ],
+      "eliminations": [],
+      "reason": "r1c1 is either 5 or 8: a 5 there runs through r2c2 and r2c5 and forces r1c5 to 1, and a 8 there forces r1c5 to 1 straight away. Whichever way r1c1 goes, r1c5 is 1."
+    }
+  },
+  {
+    "technique": "forcingChains",
+    "grid": "003004098900530000400089600794865312000723000352941786001490000239058007640300000",
+    "eliminated": [
+      {
+        "cell": 14,
+        "digits": [2]
+      }
+    ],
+    "step": {
+      "technique": "forcingChains",
+      "cells": [20, 0, 4],
+      "units": [],
+      "placements": [
+        {
+          "cell": 4,
+          "digit": 7
+        }
+      ],
+      "eliminations": [],
+      "reason": "r3c3 is either 5 or 7: a 5 there runs through r1c1 and forces r1c5 to 7, and a 7 there forces r1c5 to 7 straight away. Whichever way r3c3 goes, r1c5 is 7."
+    }
+  },
+  {
+    "technique": "forcingChains",
+    "grid": "089270043004380000301540028037024005400060301900803472790402806000090004040038050",
+    "eliminated": [
+      {
+        "cell": 6,
+        "digits": [6]
+      },
+      {
+        "cell": 15,
+        "digits": [6, 7, 9]
+      },
+      {
+        "cell": 16,
+        "digits": [1]
+      },
+      {
+        "cell": 27,
+        "digits": [6]
+      },
+      {
+        "cell": 41,
+        "digits": [9]
+      },
+      {
+        "cell": 63,
+        "digits": [1]
+      },
+      {
+        "cell": 66,
+        "digits": [1]
+      },
+      {
+        "cell": 68,
+        "digits": [1, 6]
+      },
+      {
+        "cell": 69,
+        "digits": [1]
+      },
+      {
+        "cell": 78,
+        "digits": [1]
+      }
+    ],
+    "step": {
+      "technique": "forcingChains",
+      "cells": [47, 74, 37],
+      "units": [],
+      "placements": [
+        {
+          "cell": 37,
+          "digit": 2
+        }
+      ],
+      "eliminations": [],
+      "reason": "r6c3 is either 5 or 6: a 5 there forces r5c2 to 2 straight away, and a 6 there runs through r9c3 and forces r5c2 to 2. Whichever way r6c3 goes, r5c2 is 2."
+    }
+  },
+  {
+    "technique": "forcingChains",
+    "grid": "002784006600200080800659001207005060961427853050060702706398005020176008000542600",
+    "eliminated": [
+      {
+        "cell": 10,
+        "digits": [1, 3]
+      },
+      {
+        "cell": 11,
+        "digits": [3]
+      },
+      {
+        "cell": 15,
+        "digits": [3]
+      }
+    ],
+    "step": {
+      "technique": "forcingChains",
+      "cells": [55, 72, 45],
+      "units": [],
+      "placements": [
+        {
+          "cell": 45,
+          "digit": 4
+        }
+      ],
+      "eliminations": [],
+      "reason": "r7c2 is either 1 or 4: a 1 there runs through r9c1 and forces r6c1 to 4, and a 4 there forces r6c1 to 4 straight away. Whichever way r7c2 goes, r6c1 is 4."
+    }
+  },
+  {
+    "technique": "swordfish",
+    "grid": "630785401000903685058000073860579130310000058005138060473892516581647300296351847",
+    "eliminated": [
+      {
+        "cell": 38,
+        "digits": [2, 4]
+      },
+      {
+        "cell": 42,
+        "digits": [2]
+      }
+    ],
+    "step": {
+      "technique": "swordfish",
+      "cells": [2, 7, 29, 35, 70, 71],
+      "units": [0, 3, 7, 11, 16, 17],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 11,
+          "digits": [2]
+        },
+        {
+          "cell": 53,
+          "digits": [2]
+        }
+      ],
+      "reason": "The 2 of row 1, row 4 and row 8 is confined to column 3, column 8 and column 9 between them. Those three lines must take all three 2s, so the 2 comes out of r2c3 and r6c9."
+    }
+  },
+  {
+    "technique": "swordfish",
+    "grid": "284010039613809020597023100900230041002951300130000002001390206000102003329060410",
+    "eliminated": [
+      {
+        "cell": 6,
+        "digits": [5]
+      }
+    ],
+    "step": {
+      "technique": "swordfish",
+      "cells": [29, 33, 47, 49, 51, 65, 67, 69],
+      "units": [11, 13, 15, 3, 5, 7],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 32,
+          "digits": [8]
+        },
+        {
+          "cell": 50,
+          "digits": [8]
+        },
+        {
+          "cell": 52,
+          "digits": [8]
+        },
+        {
+          "cell": 63,
+          "digits": [8]
+        },
+        {
+          "cell": 70,
+          "digits": [8]
+        }
+      ],
+      "reason": "The 8 of column 3, column 5 and column 7 is confined to row 4, row 6 and row 8 between them. Those three lines must take all three 8s, so the 8 comes out of r4c6, r6c6, r6c8, r8c1 and r8c8."
+    }
+  },
+  {
+    "technique": "swordfish",
+    "grid": "002007009700100620960023047017308902200970400609205370070000280094002706320700590",
+    "eliminated": [
+      {
+        "cell": 3,
+        "digits": [5, 8]
+      },
+      {
+        "cell": 4,
+        "digits": [4]
+      },
+      {
+        "cell": 7,
+        "digits": [1]
+      },
+      {
+        "cell": 13,
+        "digits": [4]
+      },
+      {
+        "cell": 17,
+        "digits": [8]
+      },
+      {
+        "cell": 57,
+        "digits": [5]
+      },
+      {
+        "cell": 58,
+        "digits": [4]
+      },
+      {
+        "cell": 76,
+        "digits": [4]
+      }
+    ],
+    "step": {
+      "technique": "swordfish",
+      "cells": [0, 6, 21, 24, 63, 66],
+      "units": [9, 12, 15, 0, 2, 7],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 1,
+          "digits": [8]
+        },
+        {
+          "cell": 4,
+          "digits": [8]
+        },
+        {
+          "cell": 20,
+          "digits": [8]
+        },
+        {
+          "cell": 67,
+          "digits": [8]
+        }
+      ],
+      "reason": "The 8 of column 1, column 4 and column 7 is confined to row 1, row 3 and row 8 between them. Those three lines must take all three 8s, so the 8 comes out of r1c2, r1c5, r3c3 and r8c5."
+    }
+  },
+  {
+    "technique": "swordfish",
+    "grid": "407000528602458107851270640216805074785040201040127856064580710578900460120764085",
+    "eliminated": [],
+    "step": {
+      "technique": "swordfish",
+      "cells": [1, 3, 10, 16, 39, 43],
+      "units": [10, 12, 16, 0, 1, 4],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 4,
+          "digits": [3]
+        },
+        {
+          "cell": 5,
+          "digits": [3]
+        },
+        {
+          "cell": 41,
+          "digits": [3]
+        }
+      ],
+      "reason": "The 3 of column 2, column 4 and column 8 is confined to row 1, row 2 and row 5 between them. Those three lines must take all three 3s, so the 3 comes out of r1c5, r1c6 and r5c6."
+    }
+  },
+  {
+    "technique": "swordfish",
+    "grid": "702381650351004802006520130500102408628475913004800520000058040409210385005043001",
+    "eliminated": [
+      {
+        "cell": 12,
+        "digits": [9]
+      },
+      {
+        "cell": 19,
+        "digits": [9]
+      },
+      {
+        "cell": 26,
+        "digits": [9]
+      },
+      {
+        "cell": 46,
+        "digits": [9]
+      },
+      {
+        "cell": 49,
+        "digits": [9]
+      },
+      {
+        "cell": 62,
+        "digits": [7]
+      },
+      {
+        "cell": 79,
+        "digits": [7]
+      }
+    ],
+    "step": {
+      "technique": "swordfish",
+      "cells": [23, 26, 46, 53, 64, 68],
+      "units": [2, 5, 7, 10, 14, 17],
+      "placements": [],
+      "eliminations": [
+        {
+          "cell": 28,
+          "digits": [7]
+        },
+        {
+          "cell": 55,
+          "digits": [7]
+        },
+        {
+          "cell": 73,
+          "digits": [7]
+        }
+      ],
+      "reason": "The 7 of row 3, row 6 and row 8 is confined to column 2, column 6 and column 9 between them. Those three lines must take all three 7s, so the 7 comes out of r4c2, r7c2 and r9c2."
+    }
+  }
+]

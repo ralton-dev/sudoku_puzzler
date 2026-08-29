@@ -11,6 +11,7 @@
   "types": "./src/index.ts",
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "mine-examples": "tsc -p tsconfig.build.json && node dist/training/mine.js > src/training/examples.json && prettier --write src/training/examples.json"
   }
 }
