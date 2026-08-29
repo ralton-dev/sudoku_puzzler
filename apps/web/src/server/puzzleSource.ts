@@ -2,10 +2,11 @@
  * Where a new game's puzzle comes from.
  *
  * The routes never call the core library directly — they call an injected
- * `PuzzleSource`. That is what lets WP-E's tests run in wave 2 while
- * `generate()` is still a stub that throws `NotImplemented`, and it is what
- * makes the dev-only `SUDOKU_FIXTURE` hook a swap of one object rather than a
- * branch inside a route.
+ * `PuzzleSource`. That is what lets a test pick its puzzles without waiting on
+ * the generator, and it is what makes the dev-only `SUDOKU_FIXTURE` hook a swap
+ * of one object rather than a branch inside a route. `generate()` is real for
+ * all six levels now; the injection point stays because a test that wants a
+ * *known* puzzle still should not have to generate one.
  */
 
 import type { Level } from 'sudoku-core';

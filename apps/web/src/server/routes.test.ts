@@ -1,9 +1,10 @@
 /**
  * The five routes against a real SQLite file, through `app.inject`.
  *
- * `generate()` is still a WP-D stub that throws, so every test here injects the
- * fixture puzzle source — that injection is the reason WP-E can be finished in
- * wave 2 at all.
+ * Every test here injects the fixture puzzle source rather than calling the
+ * real `generate()`: these tests are about the routes, and a route test that
+ * generated a fresh puzzle would be asserting against a puzzle it does not
+ * know. The real generator is exercised end to end in `apps/web/e2e`.
  */
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';

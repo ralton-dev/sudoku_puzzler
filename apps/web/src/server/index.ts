@@ -4,12 +4,13 @@
  * One process, one port: the same server answers `/api/*` and serves the built
  * client as static files, so the container is one image and the home lab needs
  * one ingress. `buildApp` takes its database and its puzzle source as
- * arguments, which is what lets the tests run against a temp DB and fixture
- * puzzles while `generate()` is still a WP-D stub.
+ * arguments, which is what lets the route tests run against a temp DB and a
+ * known fixture puzzle instead of a freshly generated one.
  *
- * Handover note for WP-G: production wiring is `corePuzzleSource` (already the
- * default in `main` when `SUDOKU_FIXTURE` is unset). The fixture hook is
- * dev/e2e-only and stays.
+ * Production wiring is `corePuzzleSource` — the real `generate()` — which is
+ * what `main` uses whenever `SUDOKU_FIXTURE` is unset, and the container never
+ * sets it. The fixture hook is dev/e2e-only and stays: `apps/web/e2e` boots one
+ * server without it (the real generator) and one with `SUDOKU_FIXTURE=awkward`.
  */
 
 import { existsSync, realpathSync } from 'node:fs';
@@ -17,7 +18,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fastifyStatic from '@fastify/static';
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
-import { LEVELS } from 'sudoku-core';
+import { GenerationFailed, LEVELS } from 'sudoku-core';
 import { dataDir, openDb, type Db } from './db.js';
 import { seedAwkwardGame } from './awkward.js';
 import { corePuzzleSource, fixturePuzzleSource, type PuzzleSource } from './puzzleSource.js';
@@ -25,7 +26,7 @@ import { registerRoutes } from './routes.js';
 
 export interface BuildAppOptions {
   db: Db;
-  /** injected so wave 2 can test without WP-D's `generate` (plan's `{ generate }`) */
+  /** injected so a test can serve a known puzzle (plan's `{ generate }`) */
   puzzleSource?: PuzzleSource;
   /** built client to serve; `null`/missing directory = API only */
   clientDir?: string | null;
@@ -54,6 +55,20 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     const status = error.statusCode ?? 500;
     if (status === 400)
       return reply.code(400).send({ error: 'bad-request', message: error.message });
+
+    // The generator spending its whole budget is not a bug in this server, and
+    // it is not permanent: decision 17 discards a grid and starts again, and
+    // `level.ts` gives up after twenty of them. Saying `internal-error` about
+    // it sends whoever reads the log looking for a crash that never happened,
+    // so it gets its own code and a 503 — the one 5xx that means "ask again".
+    // Matched by name as well as by identity because `sudoku-core` is bundled
+    // into this file at build time and imported as a package under `tsx`, and
+    // `instanceof` across two copies of a class is false.
+    if (error instanceof GenerationFailed || error.name === 'GenerationFailed') {
+      app.log.error(error);
+      return reply.code(503).send({ error: 'generation-failed', message: error.message });
+    }
+
     app.log.error(error);
     return reply.code(status >= 500 ? 500 : status).send({ error: 'internal-error' });
   });
