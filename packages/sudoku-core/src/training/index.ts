@@ -36,7 +36,17 @@
  */
 
 import type { TechniqueId, TrainingExample } from '../types.js';
-import examples from './examples.json';
+
+/**
+ * The import attribute is not decoration. Without `with { type: 'json' }` this
+ * module loads under every bundler in the repo and fails under plain Node ESM
+ * with `ERR_IMPORT_ATTRIBUTE_MISSING` — which is how WP-G found it, loading the
+ * built barrel unbundled from an e2e. `sudoku-core` is a library and has to be
+ * loadable that way, so the attribute stays. It is transparent to the rest of
+ * the toolchain: `tsc` preserves it in the emit, and Vite, esbuild and Vitest
+ * all produce byte-identical output with and without it.
+ */
+import examples from './examples.json' with { type: 'json' };
 
 /**
  * Every mined position, at most `EXAMPLES_PER_TECHNIQUE` per technique.

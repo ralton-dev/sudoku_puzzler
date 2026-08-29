@@ -12,6 +12,6 @@
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "build": "tsc -p tsconfig.build.json",
-    "mine-examples": "tsc -p tsconfig.build.json && node dist/training/mine.js > src/training/examples.json && prettier --write src/training/examples.json"
+    "mine-examples": "tsc -p tsconfig.build.json && node dist/training/mine.js > dist/examples.raw.json && prettier --stdin-filepath src/training/examples.json < dist/examples.raw.json > dist/examples.json && mv dist/examples.json src/training/examples.json"
   }
 }

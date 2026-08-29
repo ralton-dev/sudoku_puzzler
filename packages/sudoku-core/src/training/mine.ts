@@ -28,9 +28,28 @@
  * so `mine.ts` stays inside the ordinary `tsconfig.json` include and is
  * type-checked and linted with the rest of the package.
  *
- * **It must not import `./index.js`.** That module imports `examples.json`, and
- * the shell truncates `examples.json` the moment the redirect opens. The imports
- * below are all deliberately direct (`../rater.js`, `../level.js`, ...).
+ * ## Why the redirect does not point at `examples.json`
+ *
+ * `mine-examples` writes into `dist/`, formats from there, and only then renames
+ * the result over `src/training/examples.json`:
+ *
+ *     node dist/training/mine.js > dist/examples.raw.json
+ *       && prettier --stdin-filepath src/training/examples.json
+ *            < dist/examples.raw.json > dist/examples.json
+ *       && mv dist/examples.json src/training/examples.json
+ *
+ * Redirecting straight at `examples.json` truncates it to zero bytes for the two
+ * minutes the miner runs, and this is a shared tree: WP-G hit exactly that,
+ * with unrelated suites red-lining mid-run because the committed data had
+ * momentarily vanished. `dist/` is git-, prettier- and eslint-ignored and is
+ * outside vitest's `include`, so nothing observes the intermediate files, and
+ * the final `mv` is a same-filesystem rename — the file is either the old
+ * contents or the new one, never half of either. A failure anywhere in the
+ * chain leaves the committed file untouched.
+ *
+ * `mine.ts` must also never import `./index.js`: that module imports
+ * `examples.json`, and the miner has no business depending on its own output.
+ * The imports below are all deliberately direct (`../rater.js`, `../level.js`).
  *
  * ## What a stored example is
  *
@@ -47,8 +66,8 @@
  * (decision 3), `rate` is deterministic, every technique returns the first
  * instance in a documented scan order, and the selection and sort below are
  * total orders with no ties left to chance. Re-running the miner produces a
- * byte-identical file; `mine-examples` finishes with `prettier --write` so the
- * repo-wide `prettier --check` in the gate is satisfied, and prettier is itself
+ * byte-identical file; `mine-examples` pipes through prettier so the repo-wide
+ * `prettier --check` in the gate is satisfied, and prettier is itself
  * deterministic.
  *
  * ## Selection
