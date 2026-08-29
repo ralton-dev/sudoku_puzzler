@@ -217,8 +217,9 @@ and weekly; it is not a required check.
 
 ## Deployment contract
 
-`docs/homelab-deployment.md` is what the home lab's k3s cluster requires of this
-repo, section by section, checked against what the tree actually does. Read it
+This repo is deployed to Ben's home-lab k3s cluster; the cluster's contract for
+app repos and the deployment plan live in the (private) `homelab-k8s` repo, not
+here — this tree is public and carries nothing about the cluster. Take care
 before changing anything the deployment leans on: the health endpoints
 (`server/health.ts`), the SQLite locking mode (`server/db.ts`), the container's
 `HEALTHCHECK`, the image tags CI publishes, or the environment variables the
