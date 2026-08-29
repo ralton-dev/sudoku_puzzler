@@ -153,6 +153,13 @@ lockfile, both sequenced above.
 contexts. `check` was WP-A's; `docker` is WP-G's and **the human still has to
 add `docker` to the required-check list** — the tree cannot do it.
 
+```
+gh api -X PATCH repos/ralton-dev/sudoku_puzzler/branches/main/protection/required_status_checks \
+  -F strict=true -f 'contexts[]=check' -f 'contexts[]=docker'
+```
+
+(`-F`, not `-f`, for `strict` — `-f` sends a string and the API rejects it with 422.)
+
 `check` is `pnpm check` plus the Playwright e2e. The e2e is deliberately _not_ a
 third job: a third job would be a third required context to negotiate, and the
 e2e has nothing to say that `check` should not already be saying. Chromium is
