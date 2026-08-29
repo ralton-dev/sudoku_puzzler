@@ -16,7 +16,6 @@
  * per-stage reporting that separate tests would have.
  */
 
-import { mkdirSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 // Deep relative imports rather than the `sudoku-core` barrel, and the reason is
 // worth writing down: Playwright transpiles each file and lets Node load it, so
@@ -26,7 +25,7 @@ import { expect, test } from '@playwright/test';
 // needs the barrel, so it takes the two modules it actually uses.
 import { parseGrid } from '../../../packages/sudoku-core/src/grid';
 import { countSolutions } from '../../../packages/sudoku-core/src/solver';
-import { SCREENSHOT_DIR, expectBoardFull, fillFromSolution, openCells } from './board';
+import { expectBoardFull, fillFromSolution, openCells, shoot } from './board';
 import { activeRow, completedRows } from './db';
 import { PRODUCTION } from './servers';
 
@@ -34,8 +33,6 @@ test('a generated medium puzzle survives a reload and completes into history', a
   page,
   request,
 }, testInfo) => {
-  mkdirSync(SCREENSHOT_DIR, { recursive: true });
-
   await test.step('a fresh database has no active game', async () => {
     expect(activeRow(PRODUCTION)).toBeNull();
     const res = await request.get('/api/game');
@@ -81,7 +78,7 @@ test('a generated medium puzzle survives a reload and completes into history', a
       await page.keyboard.press(String(Number(game.solution[index])));
     }
     await expect(page.getByTestId('save-indicator')).toHaveAttribute('data-state', 'saved');
-    await page.screenshot({ path: `${SCREENSHOT_DIR}/production-midgame.png`, fullPage: true });
+    await shoot(page, 'production-midgame');
   });
 
   await test.step('reload: the board comes back exactly as it was left', async () => {
@@ -104,7 +101,7 @@ test('a generated medium puzzle survives a reload and completes into history', a
   await test.step('the server verifies completion (decision 10)', async () => {
     await expect(page.getByTestId('completion')).toBeVisible();
     await expect(page.getByTestId('completion')).toContainText('medium');
-    await page.screenshot({ path: `${SCREENSHOT_DIR}/production-completed.png`, fullPage: true });
+    await shoot(page, 'production-completed');
   });
 
   await test.step('history has one row, with a non-zero elapsed time', async () => {

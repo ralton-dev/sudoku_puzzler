@@ -7,10 +7,42 @@
  * cares about, which is that an edit reaches SQLite.
  */
 
+import { mkdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { expect, type Page } from '@playwright/test';
 
+/**
+ * Where the narrative screenshots land.
+ *
+ * Resolved from this module's own location, not from `process.cwd()`, so it is
+ * the same directory whether the run came from the repo root or from
+ * `apps/web`. `E2E_SHOTS_DIR` overrides it — that is how a human parks them
+ * somewhere they can look at them without them turning up in `git status`.
+ *
+ * The default sits under `apps/web/test-results/`, which `.gitignore` already
+ * covers. It was previously an absolute path on one machine, which passed
+ * locally and failed CI with EACCES: a screenshot is evidence, so it must never
+ * be the reason a run goes red — see `shoot` below.
+ */
 export const SCREENSHOT_DIR =
-  '/private/tmp/claude-501/-Users-benralton-repos-BEN-WORKING-sudoku-puzzler/20ae6ee1-9de4-4e01-907e-c86f28df3aa8/scratchpad/wp-g';
+  process.env.E2E_SHOTS_DIR && process.env.E2E_SHOTS_DIR.length > 0
+    ? process.env.E2E_SHOTS_DIR
+    : join(fileURLToPath(new URL('.', import.meta.url)), '..', 'test-results', 'shots');
+
+/**
+ * Take a screenshot, and never fail the test for it. A missing image loses a
+ * paragraph of the report; a throw here would lose the assertion that was
+ * about to run.
+ */
+export async function shoot(page: Page, name: string): Promise<void> {
+  try {
+    mkdirSync(SCREENSHOT_DIR, { recursive: true });
+    await page.screenshot({ path: join(SCREENSHOT_DIR, `${name}.png`), fullPage: true });
+  } catch (error) {
+    console.warn(`could not write the ${name} screenshot: ${String(error)}`);
+  }
+}
 
 /** Indices the puzzle left empty — the only ones a player may type into. */
 export const openCells = (givens: string): number[] =>

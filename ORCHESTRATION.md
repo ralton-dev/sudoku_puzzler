@@ -229,11 +229,11 @@ Things that cost someone an afternoon. Read before repeating them.
    `src/training/index.ts` does `import examples from './examples.json'`, which
    Node requires an import attribute for. Everything in the tree survives
    because everything bundles — vite, vitest and esbuild all inline the JSON —
-   but anything that transpiles-and-lets-Node-load (Playwright, a bare `node
-dist/...` against unbundled output) fails on `import { … } from
-'sudoku-core'`. `apps/web/e2e` imports `grid`/`solver` by path for that
-   reason. If the library is ever consumed unbundled, that import needs
-   `with { type: 'json' }`.
+   but anything that transpiles and lets Node load the result (Playwright, or a
+   bare `node` against the unbundled `tsc` output) fails on any
+   `import … from 'sudoku-core'`. `apps/web/e2e` imports `grid`/`solver` by
+   path for that reason. If the library is ever consumed unbundled, that import
+   needs `with { type: 'json' }`.
 8. **The awkward fixture's six pencil marks are stored but not drawn.**
    `awkward.ts` puts them on cells that also carry a digit, and `Cell.tsx` hides
    marks behind a digit deliberately (a resumed board should look like the one
@@ -241,3 +241,9 @@ dist/...` against unbundled output) fails on `import { … } from
    database and one-marked-cell-short of awkward on screen. The e2e asserts the
    six in the row and the _rendered_ count against that rule, rather than
    pretending they are visible.
+9. **An absolute path that works on the author's machine is a green local run
+   and a red CI one.** WP-G's e2e screenshots were hard-coded to a scratchpad
+   directory outside the repo; both specs failed in CI with `EACCES` on `mkdir`.
+   Artefact paths are resolved from `import.meta.url`, default under a
+   gitignored `test-results/`, overridable by an env var — and writing one never
+   fails a test, because a screenshot is evidence, not an assertion.

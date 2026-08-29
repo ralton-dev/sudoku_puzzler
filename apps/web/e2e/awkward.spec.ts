@@ -22,10 +22,9 @@
  * the value came back" — which can only be the `pagehide` + `keepalive` save.
  */
 
-import { mkdirSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 import type { CellState } from '../src/shared/api';
-import { SCREENSHOT_DIR, cellLabel } from './board';
+import { cellLabel, shoot } from './board';
 import { activeRow, completedRows, type GameRow } from './db';
 import { AWKWARD } from './servers';
 
@@ -77,7 +76,6 @@ function readSeeded(): Seeded {
 test('the awkward board loads as it was left, and an edit outruns the debounce', async ({
   page,
 }, testInfo) => {
-  mkdirSync(SCREENSHOT_DIR, { recursive: true });
   const seeded = readSeeded();
 
   const puts: number[] = [];
@@ -90,7 +88,7 @@ test('the awkward board loads as it was left, and an edit outruns the debounce',
     await expect(page.getByTestId('board')).toBeVisible();
     // Not the picker. A resumed game is not a new one.
     await expect(page.getByRole('region', { name: 'choose a level' })).toHaveCount(0);
-    await page.screenshot({ path: `${SCREENSHOT_DIR}/awkward-onload.png`, fullPage: true });
+    await shoot(page, 'awkward-onload');
   });
 
   await test.step('one cell from complete, with one wrong digit', async () => {
@@ -162,7 +160,7 @@ test('the awkward board loads as it was left, and an edit outruns the debounce',
     await page.keyboard.press(String(digit));
 
     await expect(page.getByTestId('completion')).toBeVisible();
-    await page.screenshot({ path: `${SCREENSHOT_DIR}/awkward-completed.png`, fullPage: true });
+    await shoot(page, 'awkward-completed');
 
     const rows = completedRows(AWKWARD);
     expect(rows).toHaveLength(1);
