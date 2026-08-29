@@ -116,6 +116,14 @@ rows, so any device on the home lab shows the same board and nothing is lost on 
     after a step-back budget (default 300) and start again. The rater is therefore a
     *dependency of the generator*, injected as a callback so the packages stay in
     separate files.
+18. **Training section teaches the 14 techniques from real generated positions.** Every
+    technique returns a rich `Step` (decision-16 id, cells involved, placements,
+    eliminations, one-line `reason`) — that is the rater's trace *and* the training
+    content. Example positions are **mined offline and committed as JSON** in the core
+    package (`src/training/examples.json`), imported by the client directly through the
+    workspace — **no training API, no server change**. Explanatory prose is written in
+    our own words; sudokuoftheday.com/techniques is cited as a reference, never copied.
+    Training is read-only: it never touches the active game or history.
 
 ## The red pin
 
@@ -158,8 +166,14 @@ core API and HTTP contract, the red pin, and the first `ORCHESTRATION.md`.
 - `packages/sudoku-core/src/`:
   - `types.ts` — `Grid` (Uint8Array length 81, 0 = empty), `Level` union (decision 4),
     `Puzzle { givens: Grid; solution: Grid; level: Level; seed: number }`, `Rating
-    { score: number; level: Level; steps: Array<{technique: TechniqueId; cost: number}> }`
-    and `TechniqueId` (the 14 ids in decision 16, in ladder order).
+    { score: number; level: Level; steps: Array<Step & {cost: number}> }`
+    and `TechniqueId` (the 14 ids in decision 16, in ladder order); `Step {
+    technique: TechniqueId; cells: number[]; units?: number[]; placements: Array<{cell:
+    number; digit: number}>; eliminations: Array<{cell: number; digits: number[]}>;
+    reason: string }` (decision 18 — WP-D's techniques must fill every field);
+    `TrainingExample { technique: TechniqueId; grid: string; eliminated: Array<{cell:
+    number; digits: number[]}>; step: Step }` (`eliminated` = candidates already removed
+    by earlier steps, so the client can rebuild the candidate state without a solver).
   - `rng.ts` — seeded PRNG, `createRng(seed): () => number` + `shuffle`.
   - `index.ts` — exports `generate`, `solve`, `countSolutions`, `rate`, `isValidGrid`,
     `isComplete`, types. All function bodies `throw new NotImplemented('WP-x')`.
@@ -260,7 +274,11 @@ seed})` produces a puzzle in that level's band; the pin stays `it.fails` only be
 techniques 11–14 are WP-D2's.
 
 - `packages/sudoku-core/src/techniques/` — one file per technique, `(state) => Step |
-  null` over a candidate-bitmask state, ids exactly as decision 16. WP-D writes
+  null` over a candidate-bitmask state, ids exactly as decision 16. **Every `Step`
+  field is filled** (decision 18): `cells` are the pattern cells (e.g. the four X-wing
+  corners), `eliminations`/`placements` are what changes, `reason` is one sentence a
+  learner can read ("7 in row 3 can only go in box 1, so remove 7 from the rest of box
+  1"). The rater's `Rating.steps` becomes `Step[]`, so `rate()` is a full trace. WP-D writes
   `nakedSingle`, `hiddenSingle`, `candidateLines`, `doublePairs`, `multipleLines`,
   `nakedPair`, `hiddenPair`, `nakedTriple`, `hiddenTriple`, `xWing`. `doublePairs` and
   `multipleLines` are SOTD's names for box/line reduction variants — read
@@ -382,6 +400,68 @@ Owns: `apps/web/src/client/**`, `apps/web/index.html`, `apps/web/vite.config.ts`
 deps in `apps/web/package.json` (see WP-E note). Size **L**. Depends: WP-A (contract);
 runs concurrently with WP-E.
 
+### WP-T1 · Mine training examples
+
+**Goal:** committed, checked-in example positions — several per technique — that the
+training UI renders without a solver.
+
+- `packages/sudoku-core/src/training/mine.ts` — a script (`pnpm --filter sudoku-core
+  mine-examples`) that generates puzzles across all six levels with fixed seeds, walks
+  each `rate()` trace, and for each technique keeps the **first 5 distinct positions**
+  where it is the step chosen (i.e. nothing cheaper applied). Stores
+  `TrainingExample[]` in `src/training/examples.json`, sorted by technique then seed.
+  Prefers positions where the step has few pattern cells and ≤ 3 eliminations —
+  clearer to teach.
+- `src/training/index.ts` — `TRAINING_EXAMPLES` typed import of the JSON, plus
+  `TECHNIQUE_META: Record<TechniqueId, {name: string; sotdName: string; cost:
+  [number, number]}>`.
+- Test: every technique has ≥ 3 examples (report any that don't — `swordfish`,
+  `hiddenQuad` may be rare; if so raise the seed count, and if still short say so
+  rather than hand-crafting); every example's `step` re-validates — applying
+  `eliminated` to the grid's naive candidates and running that one technique yields
+  exactly the stored `step`. **This test is what keeps `examples.json` honest when a
+  technique implementation changes.**
+
+**Acceptance:** JSON committed; the re-validation test green; count per technique in
+the report.
+
+Owns: `packages/sudoku-core/src/training/**`, one `mine-examples` script line in
+`packages/sudoku-core/package.json`, one export line in `index.ts`. Size **M**.
+Depends: WP-D2.
+
+### WP-T2 · Training section in the web client
+
+**Goal:** a `/training` area where each technique is explained, demonstrated on a real
+position, and then practised.
+
+- `apps/web/src/client/training/`: `TrainingIndex.tsx` (14 techniques in ladder
+  order, cost, one-line summary, "done" ticks from `localStorage`), `TechniquePage.tsx`,
+  `CandidateBoard.tsx` (a read-only board that renders pencil-mark candidates —
+  distinct from the game `Board`, do not reuse it), `prose/<techniqueId>.md` imported as
+  raw strings (Vite `?raw`), `usePractice.ts`.
+- Each `TechniquePage`:
+  1. **Explain** — our prose (150–300 words, one diagram-by-example), citing
+     `https://www.sudokuoftheday.com/techniques` as reference.
+  2. **Show me** — example 1: candidate board; button highlights `step.cells` (pattern),
+     then `eliminations`/`placements` (result), with `step.reason` shown.
+  3. **Practise** — examples 2..n: the board with candidates, prompt "find the
+     `<technique>`"; user clicks the cells they think form the pattern, then the
+     candidate(s) to eliminate or the digit to place; compare to `step`; on success
+     mark the technique done. Wrong answer → show which part matched.
+- Nav: one link in `App.tsx` (WP-F's file, finished by then — WP-T2 takes it over for
+  that line). Route `/training` and `/training/:technique`; the active game remains
+  the default route.
+- Tests: `usePractice` — correct/incorrect/partial matching against a fixture `Step`;
+  `CandidateBoard` renders eliminated candidates as absent. **Browser check first:**
+  screenshot of an X-wing "show me" state and a practise success.
+
+**Acceptance:** all 14 pages render from `TRAINING_EXAMPLES` with no technique
+missing a page (a technique with < 2 examples shows explain + show-me only and says
+so); practise flow works in a real browser; `pnpm check` green.
+
+Owns: `apps/web/src/client/training/**`, the nav line in `apps/web/src/client/App.tsx`.
+Size **L**. Depends: WP-T1, WP-F.
+
 ### WP-G · Integration, e2e, container
 
 **Goal:** one `docker run` gives the whole thing; an e2e proves persistence and
@@ -422,7 +502,8 @@ Owns: `Dockerfile`, `docker-compose.yml`, `apps/web/e2e/**`, `apps/web/src/serve
 | 3    | WP-C             | alone — generator with a fake rater; only core package changes                          |
 | 4    | WP-D             | alone — owns `techniques/index.ts`, `rater.ts`, `level.ts`, `index.ts` export lines      |
 | 5    | WP-D2            | alone — takes over `techniques/index.ts` and `pin.test.ts`                              |
-| 6    | WP-G             | alone — owns the choke points (`ci.yml`, `server/index.ts`, `README.md`)                |
+| 6    | WP-G + WP-T1     | disjoint: WP-G owns `Dockerfile`, `ci.yml`, `apps/web/{e2e,src/server/index.ts}`, `README.md`, `ORCHESTRATION.md`; WP-T1 owns `packages/sudoku-core/src/training/**` + one line each in `sudoku-core/package.json` and `index.ts`. WP-G does **not** touch the core package. |
+| 7    | WP-T2            | alone — takes over `App.tsx` nav line from WP-F                                          |
 
 Checked against `Owns`: wave 2's three file sets share no file except `apps/web/package.json`
 (sequenced above) and `pnpm-lock.yaml` (regenerated by whichever commits last; the
@@ -434,7 +515,7 @@ else commits it).
 `apps/web/src/shared/api.ts` (frozen after wave 1 — changes are routed, not made),
 `apps/web/package.json`, `pnpm-lock.yaml`, `.github/workflows/ci.yml`, `ORCHESTRATION.md`.
 
-Rough total: **6 waves**, 8 packages, three of them concurrent in wave 2.
+Rough total: **7 waves**, 10 packages; concurrency in waves 2 and 6.
 
 ## The regression to fear
 
@@ -485,5 +566,8 @@ uses it (via `SUDOKU_FIXTURE=awkward`) for its browser screenshot.
    for it then, with the one-line command.
 2. ~~Rating resources~~ — received 2026-08-29: sudokuoftheday.com/difficulty and
    /creation, folded into decisions 4, 16, 17. Nothing further needed.
-3. Confirmed by this plan, not asked again: no abandon button (decision 8), no auth
+3. Training section added 2026-08-29 at Ben's request (decision 18, WP-T1/WP-T2).
+   Not included, offer later: an in-game **hint** button — the same `Step` trace makes
+   it a small follow-up, but it changes the feel of the game so it's Ben's call.
+4. Confirmed by this plan, not asked again: no abandon button (decision 8), no auth
    (decision 7), SQLite on a volume (decision 6), React (decision 7).
