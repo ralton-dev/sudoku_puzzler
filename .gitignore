@@ -1,0 +1,21 @@
+node_modules/
+dist/
+coverage/
+# Runtime state: the SQLite file lives under DATA_DIR (decision 6, default ./data).
+data/
+*.db
+*.db-wal
+*.db-shm
+# Playwright (WP-G)
+test-results/
+playwright-report/
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+.idea/
+.vscode/
+# Claude Code's agent worktrees live here. `prettier --check` is repo-wide and
+# fatal, so a half-written file in one would break the gate for everyone.
+.claude/
