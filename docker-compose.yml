@@ -1,0 +1,33 @@
+# Local run of the shipped image: `docker compose up --build`, then
+# http://localhost:8080.
+#
+# The named volume is the whole point — decision 6 says the SQLite file under
+# `DATA_DIR` is the only stateful thing in the system, so `docker compose down`
+# (without `-v`) leaves the game you were in the middle of exactly where it was,
+# and `docker compose up` again resumes it.
+#
+# `HOST_PORT` exists so the compose file can be run on a machine that already
+# has something on 8080 without editing it: `HOST_PORT=18093 docker compose up`.
+
+services:
+  sudoku:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sudoku-puzzler:local
+    container_name: sudoku-puzzler
+    restart: unless-stopped
+    ports:
+      - '${HOST_PORT:-8080}:8080'
+    environment:
+      # Defaults live in the Dockerfile; repeated here because these three are
+      # the whole runtime configuration and a reader should not have to open the
+      # Dockerfile to find them. No auth (decision 7) — the edge gates it.
+      PORT: '8080'
+      HOST: '0.0.0.0'
+      DATA_DIR: /data
+    volumes:
+      - sudoku-data:/data
+
+volumes:
+  sudoku-data:

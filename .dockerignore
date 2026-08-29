@@ -1,0 +1,37 @@
+# Keep the build context to sources and manifests. Anything built, installed or
+# stateful is either rebuilt inside the image or must never enter it.
+#
+# `dist/` in particular: a stale local build must not be able to end up in the
+# image instead of the one the Dockerfile makes.
+
+node_modules
+**/node_modules
+dist
+**/dist
+coverage
+**/coverage
+
+# Runtime state (decision 6). A developer's local database is not image content.
+data
+**/data
+*.db
+*.db-wal
+*.db-shm
+
+.git
+.github
+.claude
+test-results
+**/test-results
+playwright-report
+**/playwright-report
+*.log
+.env
+.env.*
+.DS_Store
+.idea
+.vscode
+
+# Documents, not build inputs.
+*.md
+LICENSE
