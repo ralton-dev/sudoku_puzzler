@@ -1,0 +1,352 @@
+/*
+ * The training section's own stylesheet, imported by `TrainingIndex.tsx` so it
+ * ships with the section rather than being appended to the game's
+ * `styles.css`. It reuses the palette variables defined there (`--ink`,
+ * `--panel`, `--accent`, …) and defines nothing global of its own; every
+ * selector here starts with `.tr-` or `.cb-`.
+ *
+ * The candidate board repeats the game board's geometry rather than sharing a
+ * class with it, because the two are allowed to diverge: this one always draws
+ * nine candidate slots per empty square, and it has a highlighted, clickable
+ * state the game board has no use for.
+ */
+
+/* --- index -------------------------------------------------------------- */
+
+.tr-index h2,
+.tr-page h2 {
+  font-size: 1.35rem;
+  margin: 0 0 0.35rem;
+}
+
+.tr-lede {
+  color: var(--ink-soft);
+  margin-top: 0;
+}
+
+.tr-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0 0;
+  counter-reset: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.tr-link {
+  display: flex;
+  gap: 0.85rem;
+  align-items: baseline;
+  padding: 0.7rem 0.9rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.tr-link:hover {
+  border-color: var(--accent);
+}
+
+.tr-rung {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+  min-width: 1.5rem;
+  text-align: right;
+}
+
+.tr-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.tr-name {
+  font-weight: 600;
+}
+
+.tr-alias,
+.tr-summary,
+.tr-meta {
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+.tr-meta {
+  display: flex;
+  gap: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tr-done {
+  color: var(--accent);
+  margin-left: 0.4rem;
+  font-weight: 700;
+}
+
+.tr-foot {
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  margin-top: 1.25rem;
+}
+
+.tr-reset {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  text-decoration: underline;
+}
+
+/* --- technique page ----------------------------------------------------- */
+
+.tr-crumb {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.tr-crumb a {
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.tr-crumb a:hover {
+  color: var(--accent);
+}
+
+.tr-subhead {
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  margin: 0 0 0.35rem;
+}
+
+.tr-summary-line {
+  margin: 0 0 1rem;
+}
+
+.tr-tabs {
+  display: flex;
+  gap: 0.4rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 1rem;
+}
+
+.tr-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 0.4rem 0.6rem;
+  margin-bottom: -1px;
+  font: inherit;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.tr-tab-on {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.tr-prose h3 {
+  font-size: 1rem;
+  margin: 1.4rem 0 0.4rem;
+}
+
+.tr-prose p {
+  margin: 0.6rem 0;
+  max-width: 40rem;
+}
+
+.tr-prose code {
+  font-size: 0.875em;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0 0.2em;
+}
+
+.tr-instruction {
+  margin: 0 0 0.75rem;
+}
+
+.tr-reason {
+  margin: 0.75rem 0 0;
+  max-width: 32rem;
+  color: var(--ink);
+  border-left: 3px solid var(--accent);
+  padding-left: 0.7rem;
+}
+
+.tr-feedback {
+  margin: 0.75rem 0 0;
+  max-width: 32rem;
+}
+
+.tr-good {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.tr-bad {
+  color: var(--conflict-ink);
+}
+
+.tr-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.tr-button {
+  padding: 0.5rem 0.9rem;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tr-button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.tr-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.tr-button-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--panel);
+  font-weight: 600;
+}
+
+.tr-button-quiet {
+  color: var(--ink-soft);
+}
+
+/* --- candidate board ---------------------------------------------------- */
+
+.cboard {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  width: min(100%, 32rem);
+  aspect-ratio: 1;
+  background: var(--panel);
+  border: 2px solid var(--line-strong);
+  user-select: none;
+}
+
+.cb-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  border: none;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+button.cb-cell {
+  cursor: pointer;
+}
+
+.cb-cell:nth-child(9n) {
+  border-right: none;
+}
+
+.cb-cell:nth-child(n + 73) {
+  border-bottom: none;
+}
+
+.cb-cell:nth-child(9n + 3),
+.cb-cell:nth-child(9n + 6) {
+  border-right: 2px solid var(--line-strong);
+}
+
+.cb-cell:nth-child(n + 19):nth-child(-n + 27),
+.cb-cell:nth-child(n + 46):nth-child(-n + 54) {
+  border-bottom: 2px solid var(--line-strong);
+}
+
+.cb-pattern {
+  background: var(--selected);
+}
+
+.cb-picked {
+  background: var(--peer);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.cb-placed {
+  background: var(--selected);
+}
+
+.cb-value {
+  font-size: clamp(1rem, 4.5vw, 1.6rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.cb-value-placed {
+  color: var(--accent);
+}
+
+.cb-marks {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 100%;
+  height: 100%;
+  font-size: clamp(0.5rem, 1.8vw, 0.6875rem);
+  color: var(--ink-soft);
+  line-height: 1;
+}
+
+.cb-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+}
+
+button.cb-mark-on {
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+button.cb-mark-on:hover {
+  background: var(--peer);
+  color: var(--ink);
+}
+
+.cb-mark-picked {
+  background: var(--accent);
+  color: var(--panel);
+  border-radius: 3px;
+  font-weight: 700;
+}
+
+.cb-mark-struck {
+  color: var(--conflict-ink);
+  text-decoration: line-through;
+  font-weight: 700;
+}
