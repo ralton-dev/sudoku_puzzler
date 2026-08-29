@@ -26,7 +26,7 @@ afterEach(async () => {
 });
 
 describe('the awkward fixture', () => {
-  it('is one cell from complete, with one wrong digit and six marks in that box', () => {
+  it('is one cell from complete, with one wrong digit in the hole’s box and six marks in the hole', () => {
     const state = buildAwkwardState();
 
     const empty = state.cells.flatMap((cell, i) => (cell.value === 0 ? [i] : []));
@@ -37,11 +37,22 @@ describe('the awkward fixture', () => {
     );
     expect(wrong).toEqual([state.wrongCell]);
 
-    const marks = state.cells.flatMap((cell, i) => cell.marks.map((mark) => ({ i, mark })));
-    expect(marks).toHaveLength(6);
-    const box = boxOf(state.emptyCell);
-    for (const { i } of marks) expect(boxOf(i)).toBe(box);
-    expect(boxOf(state.wrongCell)).toBe(box);
+    // The six marks are candidates the player pencilled into the hole, so they
+    // live on the one empty cell — the only cell `Cell.tsx` draws marks in.
+    // Anywhere else and the fixture is awkward in the database and invisible
+    // on screen (ORCHESTRATION pitfall 8).
+    const marked = state.cells.flatMap((cell, i) => (cell.marks.length > 0 ? [i] : []));
+    expect(marked).toEqual([state.emptyCell]);
+    expect(state.markedCells).toEqual([state.emptyCell]);
+    expect(state.cells[state.emptyCell]?.marks).toHaveLength(6);
+    expect(new Set(state.cells[state.emptyCell]?.marks).size).toBe(6);
+
+    const totalMarks = state.cells.reduce((n, cell) => n + cell.marks.length, 0);
+    expect(totalMarks).toBe(6);
+
+    // The wrong digit is in the same box as the hole — the 409 and the marks
+    // are tangled together rather than tidily apart.
+    expect(boxOf(state.wrongCell)).toBe(boxOf(state.emptyCell));
 
     expect(state.elapsedMs).toBe(AWKWARD_ELAPSED_MS);
     expect(state.elapsedMs).toBeGreaterThan(60 * 60 * 1000);

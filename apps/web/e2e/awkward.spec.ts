@@ -10,8 +10,8 @@
  * empty when the app loads"* — and this is where it gets falsified.
  *
  * The shape is asserted, not compared: "exactly one empty cell, exactly one
- * entered digit that disagrees with the solution, six marks inside the box
- * holding the hole, elapsed past an hour". Comparing the row against
+ * entered digit that disagrees with the solution in that cell's box, six marks
+ * drawn in the hole, elapsed past an hour". Comparing the row against
  * `buildAwkwardState()` would only prove that function is a function; this
  * fails if the fixture ever stops being awkward.
  *
@@ -93,7 +93,11 @@ test('the awkward board loads as it was left, and an edit outruns the debounce',
 
   await test.step('one cell from complete, with one wrong digit', async () => {
     await expect(page.locator('[data-testid=board] .cell-value')).toHaveCount(80);
-    await expect(page.getByTestId(`cell-${seeded.emptyCell}`)).toHaveText('');
+    // The hole holds no digit — it shows its pencil marks instead, so assert
+    // the absence of a value rather than the absence of text.
+    await expect(page.getByTestId(`cell-${seeded.emptyCell}`).locator('.cell-value')).toHaveCount(
+      0,
+    );
 
     const wrongDigit = seeded.cells[seeded.wrongCell]?.value ?? 0;
     await expect(page.getByTestId(`cell-${seeded.wrongCell}`)).toHaveText(String(wrongDigit));
@@ -102,23 +106,28 @@ test('the awkward board loads as it was left, and an edit outruns the debounce',
     expect(seeded.row.givens[seeded.wrongCell]).toBe('0');
   });
 
-  await test.step('six pencil marks, all in the box holding the hole', async () => {
+  await test.step('six pencil marks, drawn in the hole', async () => {
     expect(seeded.markCount).toBe(6);
-    expect(new Set(seeded.markedCells.map(boxOf)).size).toBe(1);
-    expect(boxOf(seeded.markedCells[0] as number)).toBe(boxOf(seeded.emptyCell));
+    // All six on the one empty cell. `Cell.tsx` hides marks behind a digit on
+    // purpose, so marks on a filled cell would be stored and never seen — the
+    // fixture would be awkward in the database and tidy on screen. Assert the
+    // *rendered* marks: this is the load the fixture exists to show.
+    expect(seeded.markedCells).toEqual([seeded.emptyCell]);
+    expect(boxOf(seeded.wrongCell)).toBe(boxOf(seeded.emptyCell));
 
-    // Only the marks on an *empty* cell are drawn — `Cell.tsx` hides them
-    // behind a digit on purpose, so a resumed board looks like the one the
-    // player left rather than a tidied-up version of it. Assert the rendered
-    // count against that rule rather than against the raw six, and record what
-    // it came to: with this fixture the marks sit on filled cells, so the six
-    // are carried in state and none of them are on screen.
-    const visible = seeded.cells.filter((c) => c.value === 0 && c.marks.length > 0).length;
+    const hole = page.getByTestId(`cell-${seeded.emptyCell}`);
+    await expect(hole.locator('.cell-marks')).toBeVisible();
+    await expect(hole.locator('.mark-on')).toHaveCount(6);
+    await expect(hole.locator('.mark-on')).toHaveText(
+      (seeded.cells[seeded.emptyCell]?.marks ?? []).map(String),
+    );
+    // Nowhere else on the board is drawing marks.
+    await expect(page.locator('[data-testid=board] .cell-marks')).toHaveCount(1);
+
     testInfo.annotations.push({
       type: 'awkward marks',
-      description: `${seeded.markCount} marks on ${seeded.markedCells.length} cells, ${visible} rendered`,
+      description: `${seeded.markCount} marks rendered in cell ${seeded.emptyCell}`,
     });
-    await expect(page.locator('[data-testid=board] .cell-marks')).toHaveCount(visible);
   });
 
   await test.step('the timer resumed past an hour', async () => {

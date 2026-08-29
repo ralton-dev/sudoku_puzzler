@@ -242,13 +242,14 @@ Things that cost someone an afternoon. Read before repeating them.
    path for that reason. **Fixed in `906637e`**: the import now carries
    `with { type: 'json' }` (`training/index.ts`) and the barrel loads under
    plain Node; keep the attribute — bundlers emit identical output either way.
-8. **The awkward fixture's six pencil marks are stored but not drawn.**
-   `awkward.ts` puts them on cells that also carry a digit, and `Cell.tsx` hides
+8. **The awkward fixture's six pencil marks were stored but not drawn.**
+   `awkward.ts` put them on cells that also carry a digit, and `Cell.tsx` hides
    marks behind a digit deliberately (a resumed board should look like the one
-   the player left, not a tidied-up version). So the fixture is awkward in the
-   database and one-marked-cell-short of awkward on screen. The e2e asserts the
-   six in the row and the _rendered_ count against that rule, rather than
-   pretending they are visible.
+   the player left, not a tidied-up version) — so the fixture was awkward in the
+   database and tidy on screen. **Resolved**: the six marks now go in the one
+   empty cell (the candidates the player pencilled into the hole), which is the
+   only place marks are ever drawn, and the e2e asserts the six _rendered_ marks
+   on load.
 9. **An absolute path that works on the author's machine is a green local run
    and a red CI one.** WP-G's e2e screenshots were hard-coded to a scratchpad
    directory outside the repo; both specs failed in CI with `EACCES` on `mkdir`.

@@ -5,7 +5,10 @@
  * breaks things is the one this file builds: a puzzle **one cell from complete,
  * with one wrong digit and six pencil marks in the same box, and a timer
  * already past an hour**, met for the first time on a page load rather than
- * built up by the client.
+ * built up by the client. The six marks sit in the hole itself — they are the
+ * candidates the player pencilled in and never resolved, and the hole is the
+ * only place `Cell.tsx` draws marks, so the board the browser loads is as
+ * awkward on screen as the row is in the database.
  *
  * Seeded straight into the DB by `SUDOKU_FIXTURE=awkward` on boot (and replayed
  * by WP-G's e2e), so the client's first sight of the board is a half-finished
@@ -17,6 +20,9 @@ import type { CellState, Digit } from '../shared/api.js';
 import type { Db } from './db.js';
 import { insertGame, selectActive } from './games.js';
 import { assertServable, fixturePuzzleSource } from './puzzleSource.js';
+
+/** the nine digits, low to high — the pool the hole's pencil marks come from */
+const ALL_DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 /** 1h 2m 5s — past the hour, and not a round number. */
 export const AWKWARD_ELAPSED_MS = 3_725_000;
@@ -40,7 +46,7 @@ export interface AwkwardState {
   emptyCell: number;
   /** the one filled cell holding a digit that is not the solution's */
   wrongCell: number;
-  /** the cells carrying pencil marks — all in one box, six marks between them */
+  /** the cells carrying pencil marks — always just the empty one, holding all six */
   markedCells: number[];
 }
 
@@ -70,16 +76,23 @@ export function buildAwkwardState(): AwkwardState {
   const right = digitAt(wrongCell);
   (cells[wrongCell] as CellState).value = ((right % 9) + 1) as Digit;
 
-  // Six pencil marks, all inside that same box.
-  const markPlan: number[][] = [[2, 5, 8], [3, 6], [9]];
-  const markedCells: number[] = [];
-  const targets = openInBox.slice(0, markPlan.length);
-  markPlan.forEach((marks, i) => {
-    const cell = targets[i] ?? (targets[targets.length - 1] as number);
-    const state = cells[cell] as CellState;
-    state.marks = [...new Set([...state.marks, ...marks])].sort((a, b) => a - b);
-    if (!markedCells.includes(cell)) markedCells.push(cell);
-  });
+  // Six pencil marks, all in the hole — the candidates the player pencilled in
+  // and never resolved. They go there and nowhere else because `Cell.tsx` draws
+  // marks only on an empty cell (a filled cell keeps its marks but hides them,
+  // deliberately): marks anywhere else are stored and never seen, which made
+  // the fixture awkward in the database and tidy on screen.
+  //
+  // The digits: the hole's true answer first — a player's candidate list
+  // contains the right one — then the lowest remaining digits, skipping the
+  // wrong digit sitting in the same box, which a player would already have
+  // struck out because they can see it there. Six, ascending, deterministic.
+  const truth = digitAt(emptyCell);
+  const spoiled = (cells[wrongCell] as CellState).value;
+  const marks = [truth, ...ALL_DIGITS.filter((d) => d !== truth && d !== spoiled)]
+    .slice(0, 6)
+    .sort((a, b) => a - b);
+  (cells[emptyCell] as CellState).marks = marks;
+  const markedCells = [emptyCell];
 
   return {
     level: 'easy',
