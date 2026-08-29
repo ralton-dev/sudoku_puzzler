@@ -6,34 +6,51 @@ import { SCORE_BANDS, rate } from './rater.js';
 import { BANDS, MAX_GRIDS, generate } from './level.js';
 
 /**
- * ## Grids per level and wall time, seed 1
+ * ## Grids per level and wall time — WP-D2, the complete fourteen-rung ladder
  *
- * Measured on this Mac, node 22. "grids" is how many seeds `generate` spent
- * before one landed in the band — `MAX_GRIDS` (20) is the give-up point.
+ * Measured on this Mac, node 22, seeds 1..5 per level. "grids" is how many
+ * seeds `generate` spent before one landed in the band (`MAX_GRIDS` = 20 is the
+ * give-up point); "score" and "clues" are the board seed 1 produced.
  *
- * | level      | grids | clues | score | wall time |
- * | ---------- | ----- | ----- | ----- | --------- |
- * | beginner   |     1 |    44 |  3700 |      3 ms |
- * | easy       |     1 |    38 |  4300 |      3 ms |
- * | medium     |     1 |    27 |  5400 |     17 ms |
- * | tricky     |     3 |    28 |  6550 |    396 ms |
- * | fiendish   |     1 |    30 |  8500 |     78 ms |
- * | diabolical |     7 |    24 | 11450 |   1077 ms |
+ * | level      | grids 1..5    | worst ms | seed-1 clues | seed-1 score |
+ * | ---------- | ------------- | -------- | ------------ | ------------ |
+ * | beginner   | 1 1 1 1 1     |      8   |           44 |         3700 |
+ * | easy       | 1 1 1 1 1     |      2   |           38 |         4300 |
+ * | medium     | 1 1 1 1 1     |      7   |           27 |         5400 |
+ * | tricky     | 3 2 1 1 1     |    210   |           28 |         6550 |
+ * | fiendish   | 1 1 1 1 1     |     64   |           30 |         9550 |
+ * | diabolical | 1 1 1 1 2     |    126   |           28 |        12350 |
  *
- * **All six levels are reachable with techniques 1..10.** WP-D's brief expected
- * `fiendish` and `diabolical` to be out of reach until WP-D2 landed techniques
- * 11..14, and they are not: the decision-16 score is *cumulative*, so a
- * 24-clue board racks up 5700 from singles alone before a single Candidate
- * Lines is charged, and a handful of mid-ladder steps carry it past 11000. What
- * WP-D2 changes is not reachability but *character* — with Forcing Chains, the
- * Quads and the Swordfish available, `rate` will finish puzzles that stall
- * today (the diabolical fixture is one), and the digger will reach the same
- * bands from harder positions rather than from long cheap ones.
+ * **Nothing is close to WP-G's 3 s pre-generation threshold.** The slowest
+ * single call in the whole table is `tricky` seed 1 at 210 ms, and the two
+ * levels WP-G was told to watch are the two that got *faster*: before WP-D2,
+ * `diabolical` seed 1 spent 7 grids and 1077 ms and `fiendish` 78 ms. On these
+ * numbers WP-G does not need a puzzle pool.
  *
- * The whole suite below runs in under 2 s, so nothing is skipped and nothing is
- * marked expected-to-fail. `diabolical` at 1.1 s is the one to watch: it is
- * comfortably inside WP-G's 3 s pre-generation threshold, but it is the number
- * that decides whether the server needs a puzzle pool.
+ * ## What the four new rungs changed, and what they deliberately did not
+ *
+ * `beginner`, `easy`, `medium` and `tricky` are **byte-identical** to WP-D:
+ * same grids tried, same clue counts, same scores, for all five seeds. Those
+ * bands are reached long before the ladder ever climbs past X-Wing, so adding
+ * rungs above it cannot move them.
+ *
+ * `fiendish` and `diabolical` changed character, exactly as WP-D's comment
+ * predicted. A removal that used to make the ladder stall — and so used to be
+ * reverted — now rates, because Forcing Chains finishes it. The digger
+ * therefore digs deeper into the same grid instead of throwing it away: one
+ * grid instead of seven for `diabolical`, and the boards it keeps are ones
+ * whose rating genuinely uses technique 11 rather than long cheap ones that
+ * merely accumulate singles. Seed-1 `fiendish` moved 8500 -> 9550 and
+ * `diabolical` 11450 -> 12350 for that reason. Both still land in their band,
+ * which is what `generate` guarantees and what the tests below assert.
+ *
+ * `nakedQuad`, `hiddenQuad` and `swordfish` fire on none of these thirty
+ * boards, nor on any of the six fixtures — Forcing Chains gets there first
+ * every time. They are on the ladder because decision 16 puts them there and
+ * because a stall is the alternative, not because they are common.
+ *
+ * The whole suite below runs in well under 2 s; nothing is skipped and nothing
+ * is marked expected-to-fail.
  */
 const GENERATION_TIMEOUT_MS = 60_000;
 
