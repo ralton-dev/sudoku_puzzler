@@ -11,16 +11,21 @@ import { SCORE_BANDS, levelOf, rate } from './rater.js';
  *
  * | fixture    | SOTD score | SOTD's band | our score | our band  | rate() |
  * | ---------- | ---------- | ----------- | --------- | --------- | ------ |
- * | beginner   |       4200 | beginner    |      4200 | beginner  | 1.0 ms |
+ * | beginner   |       4200 | beginner    |      4200 | beginner  | 0.8 ms |
  * | easy       |       5000 | easy        |      5000 | easy      | 0.3 ms |
- * | medium     |       6450 | medium      |      6450 | medium    | 1.6 ms |
- * | tricky     |       8750 | fiendish    |      8950 | fiendish  | 1.5 ms |
- * | fiendish   |       9800 | fiendish    |      9050 | fiendish  | 0.7 ms |
- * | diabolical |      12950 | diabolical  |      null | —         | 1.0 ms |
+ * | medium     |       6450 | medium      |      6450 | medium    | 1.7 ms |
+ * | tricky     |       8750 | fiendish    |      8950 | fiendish  | 1.6 ms |
+ * | fiendish   |       9800 | fiendish    |      9800 | fiendish  | 1.3 ms |
+ * | diabolical |      12950 | diabolical  |      null | —         | 1.2 ms |
  *
- * Three of the five land on SOTD's number exactly; the other two are 200 and
- * 750 out, both inside the same band. `diabolical` is `null` because the ladder
- * stalls on techniques 11..14 — expected here, and WP-D2's job.
+ * Four of the five land on SOTD's published number **exactly**; the fifth,
+ * tricky, is 200 out and in the same band. `diabolical` is `null` because the
+ * ladder stalls without techniques 11..14 — expected here, and WP-D2's job.
+ *
+ * The tricky trace is the one to look at if that 200 ever needs explaining:
+ * `{nakedSingle: 43, hiddenSingle: 14, candidateLines: 2, doublePairs: 1,
+ * multipleLines: 1, hiddenPair: 1}`. Everything else charges the same steps
+ * SOTD's own solver would.
  *
  * "SOTD's band" is `levelOf(sotdScore)`, not the label SOTD publishes: the
  * tricky fixture's 8750 is a legitimate tricky for them (their range is

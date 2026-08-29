@@ -13,12 +13,12 @@ import { BANDS, MAX_GRIDS, generate } from './level.js';
  *
  * | level      | grids | clues | score | wall time |
  * | ---------- | ----- | ----- | ----- | --------- |
- * | beginner   |     1 |    44 |  3700 |      4 ms |
+ * | beginner   |     1 |    44 |  3700 |      3 ms |
  * | easy       |     1 |    38 |  4300 |      3 ms |
- * | medium     |     1 |    27 |  5400 |     18 ms |
- * | tricky     |     3 |    28 |  6550 |    397 ms |
- * | fiendish   |     1 |    30 |  8950 |     78 ms |
- * | diabolical |     7 |    24 | 11450 |   1136 ms |
+ * | medium     |     1 |    27 |  5400 |     17 ms |
+ * | tricky     |     3 |    28 |  6550 |    396 ms |
+ * | fiendish   |     1 |    30 |  8500 |     78 ms |
+ * | diabolical |     7 |    24 | 11450 |   1077 ms |
  *
  * **All six levels are reachable with techniques 1..10.** WP-D's brief expected
  * `fiendish` and `diabolical` to be out of reach until WP-D2 landed techniques
