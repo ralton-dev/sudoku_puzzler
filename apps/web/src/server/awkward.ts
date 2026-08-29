@@ -16,7 +16,7 @@ import { randomUUID } from 'node:crypto';
 import type { CellState, Digit } from '../shared/api.js';
 import type { Db } from './db.js';
 import { insertGame, selectActive } from './games.js';
-import { fixturePuzzleSource } from './puzzleSource.js';
+import { assertServable, fixturePuzzleSource } from './puzzleSource.js';
 
 /** 1h 2m 5s — past the hour, and not a round number. */
 export const AWKWARD_ELAPSED_MS = 3_725_000;
@@ -46,7 +46,9 @@ export interface AwkwardState {
 
 /** Build the state without touching the database. */
 export function buildAwkwardState(): AwkwardState {
-  const { givens, solution } = fixturePuzzleSource.generate('easy');
+  // Decision 5 applies to the seeded board too: the awkward state exists to be
+  // completed, and completion is checked against this very solution.
+  const { givens, solution } = assertServable(fixturePuzzleSource.generate('easy'));
   const digitAt = (i: number): Digit => (solution.charCodeAt(i) - 48) as Digit;
 
   const cells: CellState[] = Array.from({ length: 81 }, (_unused, i) => ({

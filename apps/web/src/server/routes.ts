@@ -15,7 +15,7 @@ import type { FastifyInstance } from 'fastify';
 import { LEVELS, type Level } from 'sudoku-core';
 import { API_ROUTES, type CellState, type Digit } from '../shared/api.js';
 import type { Db } from './db.js';
-import type { PuzzleSource } from './puzzleSource.js';
+import { checkServable, type PuzzleSource } from './puzzleSource.js';
 import {
   initialCells,
   insertGame,
@@ -37,6 +37,16 @@ export interface RouteDeps {
 export interface BadRequestError {
   error: 'bad-request';
   message: string;
+}
+
+/**
+ * The 500 body when the puzzle source hands us something decision 5 forbids
+ * persisting. Also not part of `ApiError`: the client cannot do anything about
+ * it but retry, and no contracted success shape changes.
+ */
+export interface PuzzleNotUniqueError {
+  error: 'puzzle-not-unique';
+  reason: 'not-unique' | 'solution-mismatch' | 'malformed';
 }
 
 const badRequest = (message: string): BadRequestError => ({ error: 'bad-request', message });
@@ -117,6 +127,16 @@ export function registerRoutes(app: FastifyInstance, deps: RouteDeps): void {
     if (selectActive(db)) return reply.code(409).send({ error: 'active-game-exists' });
 
     const puzzle = puzzleSource.generate(parsed.value);
+
+    // Decision 5: a puzzle that is not proven unique is never persisted. If we
+    // stored one, `POST /api/game/complete` would compare a correct alternative
+    // fill against the stored solution and tell the user they are wrong.
+    const rejection = checkServable(puzzle);
+    if (rejection) {
+      request.log.error(`refusing a ${puzzle.level} puzzle: ${rejection.detail}`);
+      return reply.code(500).send({ error: 'puzzle-not-unique', reason: rejection.reason });
+    }
+
     try {
       const row = insertGame(db, {
         id: randomUUID(),

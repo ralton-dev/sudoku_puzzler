@@ -8,8 +8,8 @@
  * branch inside a route.
  */
 
-import type { Grid, Level } from 'sudoku-core';
-import { generate } from 'sudoku-core';
+import type { Level } from 'sudoku-core';
+import { countSolutions, formatGrid, generate, isComplete, parseGrid } from 'sudoku-core';
 // Deep relative import on purpose: `sudoku-core`'s package `exports` map has a
 // single "." entry, so `sudoku-core/fixtures/known` does not resolve, and
 // adding an entry would mean editing a file this package does not own. The
@@ -31,9 +31,59 @@ export interface PuzzleSource {
   generate(level: Level): ServerPuzzle;
 }
 
-/** `Uint8Array(81)` -> the 81-char string the contract and the DB use. */
-export function formatGrid(grid: Grid): string {
-  return Array.from(grid, (digit) => String(digit)).join('');
+/** Why a puzzle may not be persisted (decision 5). */
+export interface PuzzleRejection {
+  reason: 'not-unique' | 'solution-mismatch' | 'malformed';
+  detail: string;
+}
+
+/**
+ * Decision 5, enforced on the *insert* path rather than trusted.
+ *
+ * A puzzle with more than one solution is the plan's named regression: the
+ * completion check compares against the **stored** solution, so a second valid
+ * fill would be reported back to the user as `wrongCells` — the app telling a
+ * correct solver they are wrong. Decision 5 says such a puzzle is never
+ * persisted, so this runs before the row is written, on whatever the puzzle
+ * source produced, generator or fixture alike. `countSolutions(g, 2)` costs
+ * well under a millisecond (WP-B), so there is no reason to skip it.
+ *
+ * Returns `null` when the puzzle is servable, or why it is not.
+ */
+export function checkServable(puzzle: ServerPuzzle): PuzzleRejection | null {
+  let givens;
+  let solution;
+  try {
+    givens = parseGrid(puzzle.givens);
+    solution = parseGrid(puzzle.solution);
+  } catch (error) {
+    return { reason: 'malformed', detail: error instanceof Error ? error.message : String(error) };
+  }
+
+  if (!isComplete(solution)) {
+    return { reason: 'solution-mismatch', detail: 'solution is not a complete valid grid' };
+  }
+  for (let i = 0; i < 81; i += 1) {
+    const given = givens[i] as number;
+    if (given !== 0 && given !== solution[i]) {
+      return { reason: 'solution-mismatch', detail: `given at ${i} disagrees with the solution` };
+    }
+  }
+
+  const count = countSolutions(givens, 2);
+  if (count !== 1) {
+    return { reason: 'not-unique', detail: `countSolutions(givens, 2) = ${count}, want 1` };
+  }
+  return null;
+}
+
+/** Throwing form, for boot-time paths where there is no request to answer. */
+export function assertServable(puzzle: ServerPuzzle): ServerPuzzle {
+  const rejection = checkServable(puzzle);
+  if (rejection) {
+    throw new Error(`refusing to persist a ${puzzle.level} puzzle: ${rejection.detail}`);
+  }
+  return puzzle;
 }
 
 /** Production: the real core generator (decisions 4, 5, 17). */
