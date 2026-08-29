@@ -19,6 +19,7 @@ import { Keypad } from './Keypad';
 import { LevelPicker } from './LevelPicker';
 import { Timer } from './Timer';
 import { formatElapsed } from './Timer';
+import { TechniquePage, TrainingIndex } from './training';
 import { useGame, type SaveState, type UseGame } from './useGame';
 
 const SAVE_LABEL: Record<SaveState, string> = {
@@ -126,6 +127,7 @@ export function App() {
           <NavLink to="/" end>
             Play
           </NavLink>
+          <NavLink to="/training">Training</NavLink>
           <NavLink to="/history">History</NavLink>
         </nav>
       </header>
@@ -133,6 +135,8 @@ export function App() {
         <Routes>
           <Route path="/" element={<GamePage game={game} />} />
           <Route path="/history" element={<History />} />
+          <Route path="/training" element={<TrainingIndex />} />
+          <Route path="/training/:technique" element={<TechniquePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
