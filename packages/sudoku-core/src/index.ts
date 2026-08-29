@@ -89,3 +89,10 @@ export type { Technique, TechniqueState } from './techniques/index.js';
 export { COSTS, LADDER, TECHNIQUES, applyStep, createState } from './techniques/index.js';
 export { levelOf, rate } from './rater.js';
 export { BANDS, generate } from './level.js';
+
+// --- WP-T1: training/ ---------------------------------------------------
+// The committed training positions (decision 18) and the names/costs the
+// training UI labels them with. Data only — `examples.json` is mined offline by
+// `training/mine.ts` and imported straight through the workspace by WP-T2, so
+// there is no training API and no server change.
+export * from './training/index.js';
