@@ -110,6 +110,7 @@ function GamePage({ game }: { game: UseGame }) {
         onSetValue={game.setValue}
         onToggleMark={game.toggleMark}
         onClear={game.clearCell}
+        onSelect={onSelect}
         locked={selected !== null && game.isGiven(selected)}
       />
     </section>

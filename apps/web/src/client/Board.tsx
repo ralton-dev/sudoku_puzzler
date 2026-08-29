@@ -16,6 +16,12 @@
  * Selecting a cell that holds a digit lights every other cell holding that
  * digit (`cell-same`) — the "where else is this number" scan a player does by
  * eye, done for them. Selecting an empty cell lights nothing extra.
+ *
+ * **A digit that lands clears the selection.** Only a digit: clearing a cell,
+ * toggling a pencil mark and moving with the arrows all keep it, because each
+ * of those is something a player does repeatedly to the same square. An arrow
+ * key with nothing selected still selects cell 0, which is what makes the
+ * keyboard usable again straight after an entry.
  */
 
 import { useCallback, useRef, type KeyboardEvent as ReactKeyboardEvent } from 'react';
@@ -128,10 +134,14 @@ export function Board({
       // Shift inverts mark-mode rather than always meaning "mark", so both
       // input styles stay reachable at once.
       const wantsMark = event.shiftKey !== markMode;
-      if (wantsMark) onToggleMark(selected, digit);
-      else onSetValue(selected, digit as Digit);
+      if (wantsMark) {
+        onToggleMark(selected, digit);
+        return;
+      }
+      onSetValue(selected, digit as Digit);
+      onSelect(null);
     },
-    [isGiven, markMode, move, onClear, onSetValue, onToggleMark, selected],
+    [isGiven, markMode, move, onClear, onSelect, onSetValue, onToggleMark, selected],
   );
 
   const select = useCallback(

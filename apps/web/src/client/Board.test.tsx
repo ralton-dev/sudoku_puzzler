@@ -110,6 +110,11 @@ const attr = (index: number, name: string): string | null =>
 
 const classesOf = (index: number): string => screen.getByTestId(`cell-${index}`).className;
 
+const selectedCells = (): number[] =>
+  Array.from(document.querySelectorAll('[aria-selected="true"]'), (el) =>
+    Number(el.getAttribute('data-index')),
+  ).sort((a, b) => a - b);
+
 const sameDigitCells = (): number[] =>
   Array.from(document.querySelectorAll('.cell-same'), (el) =>
     Number(el.getAttribute('data-index')),
@@ -174,6 +179,8 @@ describe('keyboard', () => {
     expect(spies.toggleMark).not.toHaveBeenCalled();
     expect(spies.clear).not.toHaveBeenCalled();
     expect(screen.getByTestId('cell-0').textContent).toBe('5');
+    // Nothing was entered, so there is nothing to deselect for.
+    expect(attr(0, 'aria-selected')).toBe('true');
   });
 
   it('enters a digit with 1-9 and clears with 0, Backspace and Delete', async () => {
@@ -184,13 +191,19 @@ describe('keyboard', () => {
     expect(spies.setValue).toHaveBeenCalledWith(3, 6);
     expect(screen.getByTestId('cell-3').textContent).toBe('6');
 
+    // A digit drops the selection (see `selection after an edit` below), so
+    // every entry from here on re-selects the cell first. Clearing does not.
+    await user.click(screen.getByTestId('cell-3'));
     await user.keyboard('{Backspace}');
     expect(spies.clear).toHaveBeenLastCalledWith(3);
 
-    await user.keyboard('4{Delete}');
+    await user.keyboard('4');
+    await user.click(screen.getByTestId('cell-3'));
+    await user.keyboard('{Delete}');
     expect(spies.clear).toHaveBeenCalledTimes(2);
 
     await user.keyboard('4');
+    await user.click(screen.getByTestId('cell-3'));
     await user.keyboard('0');
     expect(spies.clear).toHaveBeenCalledTimes(3);
   });
@@ -272,5 +285,62 @@ describe('same-digit highlighting', () => {
     await user.keyboard('{ArrowDown}');
     expect(attr(LONE_SEVEN, 'aria-selected')).toBe('true');
     expect(sameDigitCells()).toEqual([4]);
+  });
+});
+
+describe('selection after an edit', () => {
+  it('drops the selection once a digit lands', async () => {
+    const { spies, user } = setup();
+
+    await user.click(screen.getByTestId('cell-3'));
+    await user.keyboard('6');
+
+    expect(spies.setValue).toHaveBeenCalledWith(3, 6);
+    expect(selectedCells()).toEqual([]);
+    expect(attr(3, 'aria-selected')).toBe('false');
+  });
+
+  it('keeps the selection through a clear, a pencil mark and an arrow key', async () => {
+    const { spies, user } = setup();
+
+    await user.click(screen.getByTestId('cell-3'));
+
+    await user.keyboard('{Backspace}');
+    expect(spies.clear).toHaveBeenLastCalledWith(3);
+    expect(selectedCells()).toEqual([3]);
+
+    await user.keyboard('0');
+    expect(selectedCells()).toEqual([3]);
+
+    await user.keyboard('{Shift>}7{/Shift}');
+    expect(spies.toggleMark).toHaveBeenCalledWith(3, 7);
+    expect(selectedCells()).toEqual([3]);
+
+    await user.keyboard('{ArrowRight}');
+    expect(selectedCells()).toEqual([4]);
+  });
+
+  it('keeps the selection when mark mode turns a bare digit into a mark', async () => {
+    const { spies, user } = setup(true);
+
+    await user.click(screen.getByTestId('cell-3'));
+    await user.keyboard('7');
+
+    expect(spies.toggleMark).toHaveBeenCalledWith(3, 7);
+    expect(spies.setValue).not.toHaveBeenCalled();
+    expect(selectedCells()).toEqual([3]);
+  });
+
+  it('leaves the arrow keys working: the first one after an entry lands on cell 0', async () => {
+    const { user } = setup();
+
+    await user.click(screen.getByTestId('cell-3'));
+    await user.keyboard('6');
+    expect(selectedCells()).toEqual([]);
+
+    // Unchanged behaviour, newly reachable: an arrow with nothing selected
+    // selects the top-left cell rather than doing nothing.
+    await user.keyboard('{ArrowDown}');
+    expect(selectedCells()).toEqual([0]);
   });
 });

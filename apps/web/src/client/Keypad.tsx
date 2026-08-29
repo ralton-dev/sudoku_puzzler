@@ -5,6 +5,12 @@
  * Shift to hold, so mark-mode is a sticky state and the digit buttons change
  * meaning with it. Holding Shift on a keyboard inverts it (see `Board`), so the
  * two never fight.
+ *
+ * Entering a digit clears the selection here exactly as it does on the
+ * keyboard. The rule is duplicated in the two input surfaces rather than
+ * hoisted into `App`, because it belongs to the act of entering a digit and
+ * `App` is only the place the selection happens to be stored — hiding it there
+ * would make the keypad and the keyboard able to disagree without saying so.
  */
 
 import type { Digit } from '../shared/api';
@@ -16,6 +22,8 @@ export interface KeypadProps {
   onSetValue: (index: number, digit: Digit) => void;
   onToggleMark: (index: number, digit: number) => void;
   onClear: (index: number) => void;
+  /** same signature as `Board`'s: a digit press clears the selection with null */
+  onSelect: (index: number | null) => void;
   /** the selected cell is a given, so nothing can be entered into it */
   locked: boolean;
 }
@@ -27,6 +35,7 @@ export function Keypad({
   onSetValue,
   onToggleMark,
   onClear,
+  onSelect,
   locked,
 }: KeypadProps) {
   const disabled = selected === null || locked;
@@ -43,8 +52,12 @@ export function Keypad({
             aria-label={markMode ? `toggle mark ${digit}` : `enter ${digit}`}
             onClick={() => {
               if (selected === null) return;
-              if (markMode) onToggleMark(selected, digit);
-              else onSetValue(selected, digit as Digit);
+              if (markMode) {
+                onToggleMark(selected, digit);
+                return;
+              }
+              onSetValue(selected, digit as Digit);
+              onSelect(null);
             }}
           >
             {digit}
