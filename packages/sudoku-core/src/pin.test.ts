@@ -4,15 +4,22 @@ import { LEVELS } from './types.js';
 
 // Pin: the whole point of the library, in one test.
 //
-// Written 2026-08-29 (WP-A) before any implementation existed; all three
-// functions are `NotImplemented` stubs, so this throws on the first line of the
-// loop. `it.fails` records that as the expected state: CI stays green and the
-// tree documents that the gap is known.
+// Written 2026-08-29 (WP-A) against `NotImplemented` stubs and marked
+// `it.fails` so the tree could document a known gap without CI going red.
+// Green as of WP-D (techniques 1-10 + level targeting) and flipped to a plain
+// `it` here in WP-D2 — all six levels now generate and rate.
 //
-// WP-D2 flips this to a plain `it(...)` as part of its acceptance. If it ever
-// starts *passing* while still marked `.fails`, vitest fails the run — which is
-// exactly the alarm we want.
-it.fails('generates a uniquely-solvable puzzle at every level, deterministically', () => {
+// What it guards, per level, for the fixed seed 1:
+//   - `generate` returns a puzzle at all (decision 4: six levels, all reachable)
+//   - the puzzle has exactly one solution (decision 5)
+//   - `rate` does not stall — the ladder solves it end to end and lands the
+//     score in the band that was asked for (a `null` here means some technique
+//     the puzzle needs is missing from `LADDER`)
+//   - generation is deterministic: the same seed gives byte-identical givens
+//     (decision 3)
+// If this goes red, one of those four properties broke; the trace from
+// `rate(p.givens)` names the technique that stopped firing.
+it('generates a uniquely-solvable puzzle at every level, deterministically', () => {
   for (const level of LEVELS) {
     // all six, decision 4
     const p = generate({ level, seed: 1 });
