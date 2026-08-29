@@ -1,6 +1,7 @@
-# The job name `check` is a contract (WP-A): branch protection on `main` lists
-# it as a required status context. WP-G adds a second job named `docker`.
-# Nobody renames either.
+# Two jobs, and both names are contracts: branch protection on `main` lists
+# `check` and `docker` as required status contexts (decision 15). Nobody renames
+# either, and a third job would need the human to add a third context — which is
+# why the e2e lives inside `check` rather than in a job of its own.
 name: CI
 
 on:
@@ -35,6 +36,74 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # The browser binary is ~150 MB and never changes between runs that have
+      # the same lockfile. The system libraries it needs are not cached, so
+      # `--with-deps` still runs below; on a cache hit it is the only work done.
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: playwright-${{ runner.os }}-
+
+      - name: Install Chromium
+        run: pnpm --filter web exec playwright install --with-deps chromium
+
       # lint -> typecheck -> test -> build, in that order.
       - name: Check
         run: pnpm check
+
+      # The e2e is part of the gate, not a separate context: it builds the
+      # server and the client, boots two of them on temp databases and drives a
+      # real browser through a real generated puzzle.
+      - name: End-to-end
+        run: pnpm --filter web e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          retention-days: 7
+
+  docker:
+    name: docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      # Build only — publishing the image is deliberately out of scope (see the
+      # README's next steps). The runner already has Docker, so this needs no
+      # third-party action.
+      - name: Build the image
+        run: docker build --tag sudoku-puzzler:ci .
+
+      # Building proves it compiles; this proves it runs. better-sqlite3 is a
+      # native module and the runtime stage has no compiler, so "the image
+      # boots and can write to /data" is exactly the thing a build alone would
+      # not catch.
+      - name: Boot it and play one hand
+        run: |
+          set -euo pipefail
+          docker run --detach --name sudoku-ci --publish 8080:8080 sudoku-puzzler:ci
+          for _ in $(seq 1 60); do
+            if curl --silent --fail --output /dev/null http://127.0.0.1:8080/api/history; then break; fi
+            sleep 1
+          done
+          empty=$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8080/api/game)
+          created=$(curl --silent --output /dev/null --write-out '%{http_code}' \
+            --request POST --header 'content-type: application/json' \
+            --data '{"level":"medium"}' http://127.0.0.1:8080/api/game)
+          echo "GET /api/game on a fresh volume: $empty (want 204)"
+          echo "POST /api/game {level:medium}:  $created (want 201)"
+          test "$empty" = "204"
+          test "$created" = "201"
+
+      - name: Container logs
+        if: always()
+        run: docker logs sudoku-ci || true
+
+      - name: Stop it
+        if: always()
+        run: docker rm --force sudoku-ci || true
