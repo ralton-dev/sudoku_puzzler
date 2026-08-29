@@ -148,27 +148,69 @@ lockfile, both sequenced above.
 
 ## CI
 
-`.github/workflows/ci.yml`, two jobs, both names contracts: **`check`** and
-**`docker`**. Branch protection on `main` lists them as required status
-contexts. `check` was WP-A's; `docker` is WP-G's and **the human still has to
-add `docker` to the required-check list** — the tree cannot do it.
+`.github/workflows/ci.yml`, three jobs — `check`, `docker` (a two-leg matrix)
+and `docker-merge` — and the names are contracts. Branch protection on `main`
+lists three of the four resulting status contexts as required:
+
+| context                | job                         | runs on                                                      | required |
+| ---------------------- | --------------------------- | ------------------------------------------------------------ | -------- |
+| `check`                | `check`                     | `ubuntu-latest`                                              | yes      |
+| `docker (linux/amd64)` | `docker`, `platform` matrix | `ubuntu-latest`                                              | yes      |
+| `docker (linux/arm64)` | `docker`, `platform` matrix | `homelab-arm64` on push-to-`main`, `ubuntu-24.04-arm` on PRs | yes      |
+| `docker-merge`         | `docker-merge`              | `ubuntu-latest`                                              | **no**   |
+
+`docker-merge` is deliberately not required: it is gated on
+`github.event_name == 'push' && github.ref == 'refs/heads/main'`, so on a pull
+request it never reports, and a required context that never reports blocks every
+PR forever. The sibling repo `ralton-dev/finance-planner` requires exactly the
+same set — its per-platform legs and not its merge — and this mirrors it.
+
+**The human still has to set the required-check list**; the tree cannot do it:
 
 ```
 gh api -X PATCH repos/ralton-dev/sudoku_puzzler/branches/main/protection/required_status_checks \
-  -F strict=true -f 'contexts[]=check' -f 'contexts[]=docker'
+  -F strict=true -f 'contexts[]=check' \
+  -f 'contexts[]=docker (linux/amd64)' -f 'contexts[]=docker (linux/arm64)'
 ```
 
-(`-F`, not `-f`, for `strict` — `-f` sends a string and the API rejects it with 422.)
+(`-F`, not `-f`, for `strict` — `-f` sends a string and the API rejects it
+with 422. The matrix contexts contain a space and a slash; quote them.) This
+replaces the old single `docker` context, which no longer exists.
 
 `check` is `pnpm check` plus the Playwright e2e. The e2e is deliberately _not_ a
-third job: a third job would be a third required context to negotiate, and the
-e2e has nothing to say that `check` should not already be saying. Chromium is
+job of its own: another job would be another required context to negotiate, and
+the e2e has nothing to say that `check` should not already be saying. Chromium is
 cached on the lockfile hash.
 
-`docker` builds the image (no push — publishing it is out of scope, see the
-README) and then runs it: 204 on a fresh volume, 201 on `POST {level:medium}`.
-Building only proves it compiles; better-sqlite3 is a native module and the
-runtime stage has no compiler, so booting it is the half that could fail.
+`docker` builds **one architecture per leg, on a runner of that architecture** —
+never under emulation. The runner is chosen by one expression:
+
+```
+runs-on: ${{ (matrix.platform == 'linux/arm64' && github.event_name == 'push' && github.ref == 'refs/heads/main') && 'homelab-arm64' || (matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest') }}
+```
+
+amd64 is always GitHub's hosted `ubuntu-latest`. arm64 on a push to `main` goes
+to `homelab-arm64` — the org-level ARC runner in the home lab, runner group
+`Default`, shared with `finance-planner`. arm64 on a pull request falls back to
+GitHub's hosted `ubuntu-24.04-arm`, which is free for public repos: a fork PR
+fires `pull_request` and must never be able to select an in-cluster runner.
+
+Each leg pushes **by digest only** (no tag) to
+`ghcr.io/ralton-dev/sudoku-puzzler`, and `docker-merge` assembles the two digests
+into one manifest list with `docker buildx imagetools create`, tagged
+`sha-<full-commit-sha>` and `latest`. Nothing beyond `GITHUB_TOKEN` and
+`packages: write` is needed to push to GHCR; there are no repo or org secrets in
+play. `permissions:` is `contents: read` at the workflow level, with
+`packages: write` added on the two jobs that push.
+
+Every leg still **boots the image it just built and plays one hand**: 204 on a
+fresh volume, 201 on `POST {level:medium}`. Building only proves it compiles;
+better-sqlite3 is a native module and the runtime stage has no compiler, so
+booting it is the half that could fail — and it has to be checked on each
+architecture separately, which is the whole reason the smoke lives inside the
+matrix. The push-by-digest build hands its layers to buildkit rather than to the
+docker daemon, so a second `load: true` build re-exports the same (fully cached)
+result as a local image for `docker run`.
 
 `.github/workflows/codeql.yml` runs javascript-typescript analysis on push, PR
 and weekly; it is not a required check.
@@ -265,3 +307,18 @@ Things that cost someone an afternoon. Read before repeating them.
     server wrote (the completed row's cells) instead of the transient thing on
     screen. If an assertion can only be true for a few milliseconds, it is the
     wrong assertion.
+11. **Renaming a required status context locks `main` until a human catches
+    up.** `docker` became `docker (linux/amd64)` and `docker (linux/arm64)` when
+    it became a matrix. The old `docker` context can never report again, and a
+    required check that never reports blocks every pull request — the branch is
+    protected by a job that no longer exists. The `gh api -X PATCH` above is not
+    a nicety; run it in the same sitting as the merge. The same trap catches the
+    reverse: adding `docker-merge` to the list would block every PR, because it
+    is push-to-`main`-only and never reports on a PR at all.
+12. **A GHCR package created by a workflow is private, whatever the repository
+    is.** The first push to `ghcr.io/ralton-dev/sudoku-puzzler` creates the
+    package and links it to this repo, and `docker pull` from outside still gets
+    a 401 until someone sets its visibility to public once, by hand, in the org's
+    package settings. `finance-planner`'s images are public and anonymously
+    pullable, so the flip has been done there and is the precedent. Nothing in
+    the workflow can do it: `packages: write` publishes, it does not govern.

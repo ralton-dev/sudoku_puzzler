@@ -19,8 +19,21 @@ process, one port, and a named volume holding the SQLite file — `docker compos
 down` (without `-v`) leaves the puzzle you were in the middle of exactly where
 it was. Put it on another port with `HOST_PORT=9000 docker compose up`. There is
 no auth by design: the home lab gates it at the edge, like everything else
-there. Publishing the image to a registry and the homelab Kubernetes manifests
-are deliberately out of scope here — next steps, not part of this repo.
+there.
+
+**The published image.** Every push to `main` publishes a multi-architecture
+image — `linux/amd64` and `linux/arm64`, each built on a runner of its own
+architecture rather than under emulation — to
+`ghcr.io/ralton-dev/sudoku-puzzler`, tagged `latest` and `sha-<commit>`:
+
+```
+docker run --rm --publish 8080:8080 --volume sudoku-data:/data \
+  ghcr.io/ralton-dev/sudoku-puzzler:latest
+```
+
+Pin `sha-<commit>` rather than `latest` anywhere it matters; `latest` moves on
+every push. The remaining next step is the homelab Kubernetes manifest that
+deploys this image — that lives in the home lab's own repo, not this one.
 
 **Running it from source.** Node 22 and pnpm 9. `pnpm install`, then `pnpm
 check` for the whole gate — lint, typecheck, test, build, in that order.
