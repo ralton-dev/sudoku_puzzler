@@ -109,14 +109,24 @@ export function exclusiveLocking(env: NodeJS.ProcessEnv = process.env): boolean 
 export function openDb(dir: string = dataDir(), env: NodeJS.ProcessEnv = process.env): Db {
   mkdirSync(dir, { recursive: true });
   const db = new Database(join(dir, 'sudoku.db'));
-  db.pragma('journal_mode = WAL');
   if (exclusiveLocking(env)) {
     // Single process; keeps the WAL index in heap so `-shm` is never used;
     // makes WAL safe on NFS. Trade-off: no concurrent external readers — while
     // this server is up, `sqlite3 /data/sudoku.db` from a debug shell gets
     // `database is locked`. Stop the pod, or copy the file first.
+    //
+    // BEFORE the WAL pragma, not after, and the difference is invisible until
+    // it matters. SQLite only keeps the WAL index in heap if exclusive locking
+    // is set before the *first WAL-mode access* — and on an existing database
+    // `PRAGMA journal_mode` is itself one, because it has to read the header to
+    // answer. So on a fresh file either order works, and on the second boot
+    // onto a volume that already holds the database — every pod restart —
+    // WAL-then-EXCLUSIVE creates the `-shm` file anyway. `locking_mode` still
+    // reads back `exclusive` in that state, so the pragma test passes while the
+    // guarantee it stands for is gone. Measured; `db.test.ts` reopens.
     db.pragma('locking_mode = EXCLUSIVE');
   }
+  db.pragma('journal_mode = WAL');
   // Outside the branch on purpose: it is the grace window for the *next*
   // process, which may reach the file a moment before the one being replaced
   // has let go of it.

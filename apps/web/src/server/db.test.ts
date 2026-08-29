@@ -75,6 +75,23 @@ describe('locking mode (homelab contract §6 — WAL on NFS)', () => {
     expect(readdirSync(dir).filter((name) => name.endsWith('-shm'))).toEqual([]);
   });
 
+  it('still creates no -shm when it REOPENS a database that already exists', () => {
+    // The case the fresh-file test above cannot see, and the one that is true
+    // of every boot after the first: a pod restarting onto its volume. If the
+    // WAL pragma runs before the locking pragma, reading the existing header
+    // is a WAL-mode access and the `-shm` file is created before exclusive
+    // locking can prevent it — while `locking_mode` still reads back
+    // `exclusive`, so this file's other assertions all stay green.
+    insertGameRow('written-before-the-restart', null);
+    db.close();
+
+    db = openDb(dir);
+    expect(pragma(db, 'locking_mode')).toBe('exclusive');
+    expect(db.prepare('SELECT count(*) AS n FROM games').get()).toEqual({ n: 1 });
+    insertGameRow('written-after-the-restart', '2026-08-29T12:00:00.000Z');
+    expect(readdirSync(dir).filter((name) => name.endsWith('-shm'))).toEqual([]);
+  });
+
   it('leaves locking normal when SQLITE_EXCLUSIVE=false, so another process can read', () => {
     const other = mkdtempSync(join(tmpdir(), 'sudoku-wpe-db-shared-'));
     const shared = openDb(other, { SQLITE_EXCLUSIVE: 'false' });

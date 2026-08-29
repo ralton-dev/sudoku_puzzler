@@ -352,3 +352,17 @@ Things that cost someone an afternoon. Read before repeating them.
     the app's own handle (which is why the harness exports `db`) or boot that
     server with `SQLITE_EXCLUSIVE=false`, which is what `apps/web/e2e` does and
     says so in `e2e/servers.ts`.
+14. **`locking_mode = EXCLUSIVE` has to be set _before_ `journal_mode = WAL`,
+    and the wrong order looks right.** The deployment contract says to add it
+    "right after the WAL pragma"; that is wrong, and it fails in the only case
+    that matters. SQLite keeps the WAL index in heap — the whole point, the
+    thing that makes WAL safe on NFS — only if exclusive locking is set before
+    the first WAL-mode access, and on a database that already exists
+    `PRAGMA journal_mode` is one, because it reads the header to answer. So on
+    a fresh file both orders work, and on the second boot onto a volume that
+    already holds the file, WAL-then-EXCLUSIVE creates the `-shm` anyway. The
+    trap is that `locking_mode` still reads back `exclusive`, so the pragma
+    test the contract suggests passes with the guarantee gone. Caught by
+    running the real container against a volume from an earlier run, not by the
+    unit tests, which all started from an empty directory. `db.test.ts` now
+    closes and reopens.
