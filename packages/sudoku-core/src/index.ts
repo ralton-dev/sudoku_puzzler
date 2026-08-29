@@ -7,7 +7,8 @@
  * stub in the same commit it lands the implementation (decision 13) and turns
  * its export line into a re-export from the real file.
  *
- *   WP-B  solve, countSolutions, isValidGrid, isComplete   (grid.ts, solver.ts)
+ *   WP-B  landed — solve, countSolutions, isValidGrid, isComplete are real
+ *         (grid.ts, solver.ts), and their stubs are gone
  *   WP-C  generatePuzzle, GenerationFailed                 (generator.ts)
  *   WP-D  generate, rate                                   (rater.ts, level.ts)
  *
@@ -57,6 +58,11 @@ export {
   popcount,
 } from './grid.js';
 
+// --- WP-B: solver.ts ----------------------------------------------------
+// `countSolutions(grid, 2) === 1` is the uniqueness proof of decision 5.
+// `solveRandom` is how WP-C gets a full grid to dig from (decision 17).
+export { countSolutions, solve, solveRandom } from './solver.js';
+
 import type { Grid, Level, Puzzle, Rating } from './types.js';
 
 /**
@@ -95,18 +101,6 @@ export interface GeneratePuzzleOptions {
   rate: (grid: Grid) => Rating | null;
   /** how many reverted removals before the whole grid is discarded; default 300 */
   stepBackBudget?: number;
-}
-
-// --- WP-B ---------------------------------------------------------------
-
-/** The one solution of `grid`, or `null` if it has none (or is invalid). */
-export function solve(grid: Grid): Grid | null {
-  throw new NotImplemented('WP-B', 'solve', grid);
-}
-
-/** How many solutions `grid` has, counting no further than `limit`. */
-export function countSolutions(grid: Grid, limit: number): number {
-  throw new NotImplemented('WP-B', 'countSolutions', grid, limit);
 }
 
 // --- WP-C ---------------------------------------------------------------
