@@ -4,8 +4,13 @@
  *
  * The alternative was a Markdown dependency in the client bundle for fourteen
  * files we write ourselves and can therefore keep to four constructs:
- * `## heading`, paragraph, `- ` list, and inline `**bold**`, `` `code` `` and
- * `[text](url)`. Anything else in a prose file renders as literal text, which
+ * `## heading`, paragraph, `- ` list, and inline `**bold**`, `_emphasis_`,
+ * `` `code` `` and `[text](url)`. Emphasis is spelled with underscores because
+ * Prettier rewrites `*this*` into `_this_` across the whole tree and the gate
+ * runs Prettier — a renderer that only understood asterisks would have printed
+ * literal underscores on every page the moment the formatter touched it, which
+ * is exactly what happened. Anything else in a prose file renders as literal
+ * text, which
  * is the failure mode you want from a renderer this size: visible, in the file
  * being written, immediately.
  *
@@ -17,13 +22,16 @@
 
 import { Fragment, type ReactNode } from 'react';
 
-const INLINE = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g;
+const INLINE = /(\*\*[^*]+\*\*|_[^_]+_|`[^`]+`|\[[^\]]+\]\([^)]+\))/g;
 
 function inline(text: string, keyPrefix: string): ReactNode[] {
   return text.split(INLINE).map((part, i) => {
     const key = `${keyPrefix}-${i}`;
     if (part.startsWith('**') && part.endsWith('**')) {
       return <strong key={key}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.length > 2 && part.startsWith('_') && part.endsWith('_')) {
+      return <em key={key}>{part.slice(1, -1)}</em>;
     }
     if (part.startsWith('`') && part.endsWith('`')) {
       return <code key={key}>{part.slice(1, -1)}</code>;

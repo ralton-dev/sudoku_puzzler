@@ -8,7 +8,7 @@ square in the box that could still take it. If all of those squares happen to
 lie on one line — a single row, or a single column — then wherever the digit
 ends up in this box, it is somewhere on that line. The line therefore has its
 copy of the digit inside this box, so the digit can be struck out of every
-square on that line in the *other two* boxes.
+square on that line in the _other two_ boxes.
 
 ## A worked example
 
@@ -22,7 +22,7 @@ the 4 out there. Nothing has been placed; the board is simply smaller.
 We use this in the box-to-line direction only, exactly as sudokuoftheday.com
 defines it. The mirror-image argument — a digit confined to one box within a
 line — is not a separate rung here; it falls out of Multiple Lines, which looks
-at a whole band or stack. A box with only *one* place for the digit is a Hidden
+at a whole band or stack. A box with only _one_ place for the digit is a Hidden
 Single, cheaper, so this technique needs at least two.
 
 Reference: our definition follows sudokuoftheday.com's **Candidate Lines** at

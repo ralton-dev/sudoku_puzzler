@@ -134,13 +134,17 @@ function resultMessage(result: CheckResult, wants: Wants): string {
   const noun = wants === 'placement' ? 'placement' : 'elimination';
   const parts: string[] = [];
   if (result.matched.length === 0) {
-    parts.push(`Not this one — the step makes ${result.missing.length} ${noun}${result.missing.length === 1 ? '' : 's'}.`);
+    parts.push(
+      `Not this one — the step makes ${result.missing.length} ${noun}${result.missing.length === 1 ? '' : 's'}.`,
+    );
   } else {
     parts.push(`${list(result.matched)} — right.`);
     if (result.missing.length > 0) parts.push(`${result.missing.length} more.`);
   }
   if (result.extra.length > 0) {
-    parts.push(`${list(result.extra)} ${result.extra.length === 1 ? 'is' : 'are'} not removed here.`);
+    parts.push(
+      `${list(result.extra)} ${result.extra.length === 1 ? 'is' : 'are'} not removed here.`,
+    );
   }
   return parts.join(' ');
 }

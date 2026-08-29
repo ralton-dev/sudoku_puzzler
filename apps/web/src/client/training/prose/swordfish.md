@@ -20,7 +20,7 @@ say — is impossible.
 
 ## What it is not
 
-If the three rows only manage to cover *two* columns, that is an X-Wing with a
+If the three rows only manage to cover _two_ columns, that is an X-Wing with a
 spare row, and the cheaper rung has already taken it. Rows contributing two
 candidates rather than three are normal; the pattern does not need to be full.
 

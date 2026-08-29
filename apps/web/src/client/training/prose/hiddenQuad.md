@@ -4,7 +4,7 @@ technique this ladder never has to use.
 ## The rule
 
 Take a unit and count places per digit. If four digits are all confined to the
-*same* four squares, those four digits fill those four squares between them, one
+_same_ four squares, those four digits fill those four squares between them, one
 each. Every other candidate in those four squares can be erased. A digit may
 reach only two or three of the four squares; what matters is that none of the
 four leaks outside.

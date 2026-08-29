@@ -4,7 +4,7 @@ inside one unit or one band.
 ## The rule
 
 Pick a digit. Find two rows in which that digit has exactly **two** possible
-squares, and in which those two squares sit in the *same two columns*. The four
+squares, and in which those two squares sit in the _same two columns_. The four
 squares form the corners of a rectangle. Each row must place the digit in one of
 its two corners, and the two rows cannot both choose the same column — so
 whichever way they fall, one corner in each column is taken. Both columns

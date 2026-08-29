@@ -5,8 +5,8 @@ shape on the ladder.
 
 Take a band (three boxes side by side) or a stack (three boxes stacked), and one
 digit. Look at two of the three boxes. If each of those two boxes has exactly
-**two** places for the digit, and each box's two places sit on two *different*
-lines of the chute, and both boxes use the *same* two lines — that is the
+**two** places for the digit, and each box's two places sit on two _different_
+lines of the chute, and both boxes use the _same_ two lines — that is the
 pattern. Two boxes cannot both put the digit on the same line, so between them
 they take one line each: both of those lines are spoken for. The third box's
 digit is therefore forced onto the one remaining line, and the digit comes out

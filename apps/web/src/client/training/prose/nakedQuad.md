@@ -21,7 +21,7 @@ row 2's 1, 2, 3 and 4 all live there — and come out of the rest of the row.
 
 No position mined from our generator ever reaches it, and the reason is
 structural: in a nine-square unit a naked quad's complement is a hidden subset of
-size *n* − 4, which for any unit with fewer than nine empty squares is a pair or
+size _n_ − 4, which for any unit with fewer than nine empty squares is a pair or
 a triple — and those rungs are cheaper, so the solver takes them first. A quad
 can only ever be the chosen step in a unit with nine empty squares, and a
 position hard enough to reach this rung no longer has one. Explanation only,

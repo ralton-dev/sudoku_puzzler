@@ -3,7 +3,7 @@ The first of the subset techniques: two squares that between them own two digits
 ## The rule
 
 Inside one unit — a row, a column or a box — find two empty squares whose
-candidates are the *same* two digits and nothing else. You do not know which
+candidates are the _same_ two digits and nothing else. You do not know which
 square takes which digit, but you know the two squares use both digits between
 them: one each. Those two digits are therefore unavailable to every other square
 in the unit, and can be struck out of all of them.

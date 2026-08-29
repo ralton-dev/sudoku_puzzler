@@ -78,9 +78,7 @@ export function TechniquePage() {
   if (!isTechniqueId(technique)) {
     return (
       <section className="tr-page">
-        <p className="notice notice-bad">
-          There is no technique called &ldquo;{technique}&rdquo;.
-        </p>
+        <p className="notice notice-bad">There is no technique called &ldquo;{technique}&rdquo;.</p>
         <p>
           <Link to="/training">Back to the ladder</Link>
         </p>
@@ -146,9 +144,9 @@ function Technique({ id }: { id: TechniqueId }) {
 
       {examples.length === 0 ? (
         <p className="notice" data-testid="no-examples">
-          Explanation only. No position mined from our generator ever reaches this rung — a quad&rsquo;s
-          complement in a unit is a cheaper pair or triple, which the solver takes first — so there
-          is nothing honest to demonstrate or practise on.
+          Explanation only. No position mined from our generator ever reaches this rung — a
+          quad&rsquo;s complement in a unit is a cheaper pair or triple, which the solver takes
+          first — so there is nothing honest to demonstrate or practise on.
         </p>
       ) : examples.length === 1 ? (
         <p className="notice" data-testid="one-example">

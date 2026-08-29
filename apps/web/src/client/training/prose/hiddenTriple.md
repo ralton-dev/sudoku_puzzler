@@ -3,7 +3,7 @@ Three digits that between them own three squares — the Hidden Pair one size up
 ## The rule
 
 Take a unit and, digit by digit, note which squares could still take it. If you
-can find three digits whose candidate squares all fall inside the *same* three
+can find three digits whose candidate squares all fall inside the _same_ three
 squares, those three digits fill those three squares between them. Every other
 candidate in the three squares can be erased.
 

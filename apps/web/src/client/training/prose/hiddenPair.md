@@ -3,7 +3,7 @@ The Naked Pair inverted: two digits that between them own two squares.
 ## The rule
 
 Take a unit and count, for each digit it still needs, how many squares could
-take it. Find two digits whose candidate squares are the *same* pair of squares.
+take it. Find two digits whose candidate squares are the _same_ pair of squares.
 Those two digits must fill those two squares between them, one each — so there
 is no room in either square for anything else, and every other candidate in
 those two squares can be erased.

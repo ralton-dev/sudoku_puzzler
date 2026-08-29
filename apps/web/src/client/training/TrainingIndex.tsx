@@ -31,9 +31,9 @@ export function TrainingIndex() {
       <h2>Training</h2>
       <p className="tr-lede">
         The fourteen techniques our solver uses, cheapest first — the same ladder that scores a
-        puzzle&rsquo;s difficulty. Each page explains the technique in our own words, demonstrates it
-        on a position taken from a real generated puzzle, and then asks you to find it yourself. The
-        definitions follow{' '}
+        puzzle&rsquo;s difficulty. Each page explains the technique in our own words, demonstrates
+        it on a position taken from a real generated puzzle, and then asks you to find it yourself.
+        The definitions follow{' '}
         <a
           href="https://www.sudokuoftheday.com/techniques"
           target="_blank"

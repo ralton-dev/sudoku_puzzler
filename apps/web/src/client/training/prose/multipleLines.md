@@ -5,7 +5,7 @@ harder to see because the shape is untidy.
 
 Take a band or a stack and a digit, and look at two of its three boxes. Forget
 how many candidates each box has and where they sit within it. Ask only this:
-across those two boxes together, do *all* the places for the digit fall on just
+across those two boxes together, do _all_ the places for the digit fall on just
 **two** of the chute's three lines? If so, the two boxes must take one of those
 lines each — every box needs the digit, and two boxes of a chute can never share
 a line — so both lines are used up. The third box is pushed onto the remaining
