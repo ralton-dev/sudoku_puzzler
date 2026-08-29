@@ -32,10 +32,7 @@ export interface BoardProps {
 }
 
 /** 1-9 from a key event, tolerating Shift and the numeric keypad. */
-export function digitFromKey(event: {
-  code?: string;
-  key: string;
-}): number | null {
+export function digitFromKey(event: { code?: string; key: string }): number | null {
   const fromCode = /^(?:Digit|Numpad)([0-9])$/.exec(event.code ?? '');
   if (fromCode?.[1] !== undefined) return Number(fromCode[1]);
   if (/^[0-9]$/.test(event.key)) return Number(event.key);

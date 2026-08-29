@@ -110,10 +110,7 @@ function awkwardGame(id: string): MockGame {
   const boxMates = [...Array(81).keys()].filter(
     (i) => boxOf(i) === boxOf(emptyIdx) && i !== emptyIdx && nonGiven(i),
   );
-  const leftovers = [
-    [2, 6],
-    [3],
-  ];
+  const leftovers = [[2, 6], [3]];
   boxMates.slice(0, leftovers.length).forEach((idx, n) => {
     const cell = cells[idx];
     const marks = leftovers[n];

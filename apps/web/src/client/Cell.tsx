@@ -29,16 +29,7 @@ function describe(cell: CellState, given: boolean, index: number): string {
   return `${where}, empty`;
 }
 
-export function Cell({
-  index,
-  cell,
-  given,
-  selected,
-  peer,
-  conflict,
-  wrong,
-  onSelect,
-}: CellProps) {
+export function Cell({ index, cell, given, selected, peer, conflict, wrong, onSelect }: CellProps) {
   const classes = ['cell'];
   if (given) classes.push('cell-given');
   if (selected) classes.push('cell-selected');

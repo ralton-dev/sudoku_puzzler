@@ -46,8 +46,7 @@ export async function fetchActiveGame(signal?: AbortSignal): Promise<ActiveGame 
 }
 
 export type CreateGameResult =
-  | { ok: true; game: ActiveGame }
-  | { ok: false; error: 'active-game-exists' };
+  { ok: true; game: ActiveGame } | { ok: false; error: 'active-game-exists' };
 
 /** POST /api/game — 409 is a normal outcome (decision 8), not an error. */
 export async function createGame(level: Level): Promise<CreateGameResult> {
@@ -57,7 +56,8 @@ export async function createGame(level: Level): Promise<CreateGameResult> {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
-  if (res.status === 201) return { ok: true, game: await parseJson<ActiveGame>(res, 'POST /api/game') };
+  if (res.status === 201)
+    return { ok: true, game: await parseJson<ActiveGame>(res, 'POST /api/game') };
   if (res.status === 409) return { ok: false, error: 'active-game-exists' };
   throw new HttpError(res.status, `POST ${API_ROUTES.game}`);
 }
@@ -81,7 +81,8 @@ export async function saveProgress(
     body: JSON.stringify(body),
     keepalive: opts.keepalive === true,
   });
-  if (res.status === 200) return { ok: true, game: await parseJson<ActiveGame>(res, 'PUT /api/game/progress') };
+  if (res.status === 200)
+    return { ok: true, game: await parseJson<ActiveGame>(res, 'PUT /api/game/progress') };
   if (res.status === 404) return { ok: false, error: 'no-active-game' };
   throw new HttpError(res.status, `PUT ${API_ROUTES.progress}`);
 }

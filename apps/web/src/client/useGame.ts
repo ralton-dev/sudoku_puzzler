@@ -20,7 +20,14 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ActiveGame, CellState, Digit, HistoryEntry, Level, SaveProgressBody } from '../shared/api';
+import type {
+  ActiveGame,
+  CellState,
+  Digit,
+  HistoryEntry,
+  Level,
+  SaveProgressBody,
+} from '../shared/api';
 import { completeGame, createGame, fetchActiveGame, saveProgress } from './api';
 
 export const SAVE_DEBOUNCE_MS = 500;
