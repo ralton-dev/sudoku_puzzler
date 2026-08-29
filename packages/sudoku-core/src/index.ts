@@ -9,7 +9,8 @@
  *
  *   WP-B  landed — solve, countSolutions, isValidGrid, isComplete are real
  *         (grid.ts, solver.ts), and their stubs are gone
- *   WP-C  generatePuzzle, GenerationFailed                 (generator.ts)
+ *   WP-C  landed — generatePuzzle and GenerationFailed are real (generator.ts),
+ *         and the stub and the class that lived here are gone
  *   WP-D  generate, rate                                   (rater.ts, level.ts)
  *
  * When the last stub goes, `NotImplemented` below goes with it.
@@ -63,6 +64,20 @@ export {
 // `solveRandom` is how WP-C gets a full grid to dig from (decision 17).
 export { countSolutions, solve, solveRandom } from './solver.js';
 
+// --- WP-C: generator.ts -------------------------------------------------
+// `generatePuzzle` returns a `GeneratedPuzzle` — `Puzzle` without `level`,
+// because the band came from the caller and this package has no `levelOf`.
+// WP-D's `generate({level, seed})` adds the level. `shuffleGrid` is the SOTD
+// variant trick, exported because it is useful on its own.
+export type { GeneratePuzzleOptions, GeneratedPuzzle, GenerationStats } from './generator.js';
+export {
+  DEFAULT_STEP_BACK_BUDGET,
+  GenerationFailed,
+  RATE_AFTER_REMOVALS,
+  generatePuzzle,
+  shuffleGrid,
+} from './generator.js';
+
 import type { Grid, Level, Puzzle, Rating } from './types.js';
 
 /**
@@ -77,41 +92,6 @@ export class NotImplemented extends Error {
     this.name = 'NotImplemented';
     this.workPackage = workPackage;
   }
-}
-
-/** Thrown by `generatePuzzle` when the step-back budget is spent (decision 17). */
-export class GenerationFailed extends Error {
-  readonly seed: number;
-  readonly stepBacks: number;
-
-  constructor(detail: { seed: number; stepBacks: number }) {
-    super(`generation failed for seed ${detail.seed} after ${detail.stepBacks} step-backs`);
-    this.name = 'GenerationFailed';
-    this.seed = detail.seed;
-    this.stepBacks = detail.stepBacks;
-  }
-}
-
-/** Options for `generatePuzzle` (decision 17). */
-export interface GeneratePuzzleOptions {
-  seed: number;
-  /** the score band to land in, inclusive */
-  target: { min: number; max: number };
-  /** injected rater — `null` means the ladder stalled on this grid */
-  rate: (grid: Grid) => Rating | null;
-  /** how many reverted removals before the whole grid is discarded; default 300 */
-  stepBackBudget?: number;
-}
-
-// --- WP-C ---------------------------------------------------------------
-
-/**
- * Dig a full grid down to a puzzle whose rating lands inside `target`
- * (decision 17). The rater is injected, so this function knows nothing about
- * techniques. Throws `GenerationFailed` when the step-back budget is spent.
- */
-export function generatePuzzle(options: GeneratePuzzleOptions): Puzzle {
-  throw new NotImplemented('WP-C', 'generatePuzzle', options);
 }
 
 // --- WP-D ---------------------------------------------------------------
