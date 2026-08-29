@@ -30,10 +30,12 @@ rows, so any device on the home lab shows the same board and nothing is lost on 
 3. **Core library is pure and dependency-free** — no Node APIs, no I/O, no RNG other than
    an injected seeded PRNG (`mulberry32`-style, seed: number). Determinism is an
    acceptance criterion: same seed → same puzzle.
-4. **Difficulty = hardest human technique required**, not clue count. Five levels, in
-   order: `easy`, `medium`, `hard`, `expert`, `evil`. The technique ladder and its
-   mapping to levels is WP-D's; the *level names* are fixed here and appear in the DB and
-   the API verbatim.
+4. **Difficulty = the sudokuoftheday.com cumulative technique-cost score.** Source of
+   truth: https://www.sudokuoftheday.com/difficulty (read 2026-08-29; the tables are
+   copied into decision 16 so agents never need the network). Six levels, in order:
+   `beginner`, `easy`, `medium`, `tricky`, `fiendish`, `diabolical`. The level names are
+   fixed here and appear in the DB and the API verbatim. Not "hardest technique", not
+   clue count.
 5. **Uniqueness is absolute.** Every puzzle served has exactly one solution, proven by
    `countSolutions(grid, limit=2) === 1`. A puzzle that fails this is never persisted.
 6. **Server: Fastify + better-sqlite3**, single SQLite file at `DATA_DIR/sudoku.db`
@@ -79,6 +81,41 @@ rows, so any device on the home lab shows the same board and nothing is lost on 
     Settings that live in GitHub, not the tree, are applied by the human via
     `/tmp/sudoku-repo-setup.sh` (see "What to bring the human") — agents never call the
     GitHub settings API.
+16. **Scoring table (from sudokuoftheday.com/difficulty, verbatim).** The rater applies
+    techniques cheapest-first, restarting from the top after every successful
+    application; each application adds its cost; the sum is the score.
+
+    | # | technique (SOTD name) | our id | first use | subsequent |
+    |---|---|---|---|---|
+    | 1 | Single Candidate | `nakedSingle` | 100 | 100 |
+    | 2 | Single Position | `hiddenSingle` | 100 | 100 |
+    | 3 | Candidate Lines | `candidateLines` (pointing pair/triple) | 350 | 200 |
+    | 4 | Double Pairs | `doublePairs` | 500 | 250 |
+    | 5 | Multiple Lines | `multipleLines` | 700 | 400 |
+    | 6 | Naked Pair | `nakedPair` | 750 | 500 |
+    | 7 | Hidden Pair | `hiddenPair` | 1500 | 1200 |
+    | 8 | Naked Triple | `nakedTriple` | 2000 | 1400 |
+    | 9 | Hidden Triple | `hiddenTriple` | 2400 | 1600 |
+    | 10 | X-Wing | `xWing` | 2800 | 1600 |
+    | 11 | Forcing Chains | `forcingChains` | 4200 | 2100 |
+    | 12 | Naked Quad | `nakedQuad` | 5000 | 4000 |
+    | 13 | Hidden Quad | `hiddenQuad` | 7000 | 5000 |
+    | 14 | Swordfish | `swordfish` | 8000 | 6000 |
+
+    SOTD's published ranges overlap (beginner 3600–4500, easy 4300–5500, medium
+    5300–6900, tricky 6500–9300, fiendish 8300–14000, diabolical 11000–25000). **We
+    resolve overlaps by lower bound** so `levelOf(score)` is a function:
+    beginner `< 4300` · easy `4300–5299` · medium `5300–6499` · tricky `6500–8299` ·
+    fiendish `8300–10999` · diabolical `≥ 11000`. A puzzle the ladder cannot finish
+    (needs a guess) has no score and is **rejected by the generator**, never served.
+17. **Generation is reductive with difficulty targeted during digging** (from
+    sudokuoftheday.com/creation): full grid → remove rotationally-symmetric cell pairs
+    (centre cell alone) at random → after ~15 pairs, rate after every removal → revert
+    a removal that breaks uniqueness, makes the ladder stall, or overshoots the target
+    band's max → stop when the score is inside the target band → discard the whole grid
+    after a step-back budget (default 300) and start again. The rater is therefore a
+    *dependency of the generator*, injected as a callback so the packages stay in
+    separate files.
 
 ## The red pin
 
@@ -88,15 +125,15 @@ assertions, against stubs that throw `NotImplemented`:
 ```ts
 // Pin: the whole point of the library, in one test.
 // Written 2026-08-29 before any implementation existed; all three stubs throw.
-for (const level of ['easy','medium','hard','expert','evil'] as const) {
+for (const level of LEVELS) {                       // all six, decision 4
   const p = generate({ level, seed: 1 });
   expect(countSolutions(p.givens, 2)).toBe(1);
-  expect(rate(p.givens).level).toBe(level);
+  expect(rate(p.givens)?.level).toBe(level);        // rate() is null if the ladder stalls
   expect(generate({ level, seed: 1 }).givens).toEqual(p.givens); // deterministic
 }
 ```
 
-**WP-D flips it to a plain `it(...)` as part of its acceptance.** Until then CI is green
+**WP-D2 flips it to a plain `it(...)` as part of its acceptance.** Until then CI is green
 and the tree documents that the gap is known.
 
 ## Work packages
@@ -121,15 +158,16 @@ core API and HTTP contract, the red pin, and the first `ORCHESTRATION.md`.
 - `packages/sudoku-core/src/`:
   - `types.ts` — `Grid` (Uint8Array length 81, 0 = empty), `Level` union (decision 4),
     `Puzzle { givens: Grid; solution: Grid; level: Level; seed: number }`, `Rating
-    { level: Level; hardestTechnique: string; techniques: string[] }`.
+    { score: number; level: Level; steps: Array<{technique: TechniqueId; cost: number}> }`
+    and `TechniqueId` (the 14 ids in decision 16, in ladder order).
   - `rng.ts` — seeded PRNG, `createRng(seed): () => number` + `shuffle`.
   - `index.ts` — exports `generate`, `solve`, `countSolutions`, `rate`, `isValidGrid`,
     `isComplete`, types. All function bodies `throw new NotImplemented('WP-x')`.
   - `pin.test.ts` — the red pin, `it.fails`.
-  - `fixtures/` — **five** hand-picked published puzzles, one per level, as 81-char
-    strings with their known solutions, in `fixtures/known.ts`. Source and stated
-    difficulty recorded in a comment per puzzle. (Ben will supply rating resources —
-    WP-A uses well-known public examples; WP-D may replace them.)
+  - `fixtures/known.ts` — **six** puzzles from sudokuoftheday.com, one per level, as
+    81-char strings with their solutions **and SOTD's published score**, each with its
+    source URL and date in a comment. These are the calibration oracle for WP-D2; if a
+    level's puzzle can't be found with a published score, say so in the report.
 - `apps/web/` skeleton: `package.json`, `tsconfig`, `src/shared/api.ts` — the **frozen
   HTTP contract** (decision 12):
 
@@ -175,7 +213,7 @@ Owns: everything in the repo at this point (it is alone). Size **M**. Depends: n
 - Replace the `NotImplemented` stubs for `solve`, `countSolutions`, `isValidGrid`,
   `isComplete` in `index.ts` (the `index.ts` **re-export lines only** — WP-B owns those
   four lines; WP-C/WP-D own theirs).
-- Tests: the five fixtures solve to their known solutions; a grid with two solutions
+- Tests: the six fixtures solve to their known solutions; a grid with two solutions
   returns `countSolutions === 2`; an empty grid `countSolutions(…, 2) === 2` in under
   50 ms; the "hardest for brute force" 17-clue puzzle solves in under 200 ms (record the
   measurement in the test comment); invalid grid (duplicate in row) → `solve` returns
@@ -187,61 +225,91 @@ Owns: everything in the repo at this point (it is alone). Size **M**. Depends: n
 Owns: `packages/sudoku-core/src/grid.ts`, `solver.ts`, their `*.test.ts`, and the four
 named export lines in `index.ts`. Size **M**. Depends: WP-A.
 
-### WP-C · Generator (uniqueness, no level targeting yet)
+### WP-C · Reductive generator with injected rater
 
-**Goal:** `generatePuzzle({seed, symmetry?})` returns a minimal-ish puzzle with exactly
-one solution, deterministically.
+**Goal:** `generatePuzzle({seed, target, rate})` digs a full grid down to a puzzle whose
+score lands in `target` — decision 17 — with the rater passed in, so this package needs
+no knowledge of techniques.
 
 - `packages/sudoku-core/src/generator.ts`:
   - full grid: `solveRandom(emptyGrid, rng)` from WP-B.
-  - dig: remove cells in a seeded random order (rotational symmetry pairs by default),
-    keep a removal only if `countSolutions(grid, 2) === 1`. Continue until a pass
-    removes nothing (local minimality) or a clue floor (default 22) is hit.
-  - returns `{ givens, solution, seed }` — **no `level`**; WP-D wraps it.
-- Tests: deterministic for a seed; 20 seeds → all unique; clue counts logged; median
-  generation time recorded in a comment (target < 300 ms per puzzle on the Mac; if it
-  is slower, say so — WP-D's targeting loop calls this repeatedly).
+  - `generatePuzzle(opts: { seed: number; target: {min:number;max:number};
+    rate: (g: Grid) => Rating | null; stepBackBudget?: number })`.
+  - dig loop exactly as decision 17: symmetric pairs, centre alone; before ~15 pairs
+    only check `countSolutions(g,2)===1`; after, also call `rate`; revert on
+    non-unique / `null` / `score > target.max`; return when `min ≤ score ≤ max`; throw
+    `GenerationFailed({seed, stepBacks})` when the budget is spent.
+  - `shuffleGrid(grid, rng)` — the SOTD variant trick (swap rows/cols within bands,
+    swap bands/stacks, transpose, digit permutation); used on the full grid before
+    digging so seeds diverge cheaply.
+- Tests use a **fake rater** (e.g. `score = 100 × empty cells`) so WP-C is testable in
+  its wave: deterministic per seed; returns inside the band; reverts are counted;
+  `GenerationFailed` after the budget with an impossible band; uniqueness holds for
+  every returned puzzle across 30 seeds. Record median dig time with the fake rater.
 
-**Acceptance:** per-rule tests green; timing recorded; `generatePuzzle` exported from
-`index.ts` (its one line).
+**Acceptance:** per-rule tests green; `generatePuzzle` and `GenerationFailed` exported
+(their lines in `index.ts`); the fake-rater timing recorded in the test comment.
 
-Owns: `packages/sudoku-core/src/generator.ts` + test, one export line in `index.ts`.
+Owns: `packages/sudoku-core/src/generator.ts` + test, two export lines in `index.ts`.
 Size **M**. Depends: WP-B.
 
-### WP-D · Rater, level targeting, flip the pin
+### WP-D · Rater engine + techniques 1–10 + level targeting
 
-**Goal:** `rate(grid)` reports the hardest human technique needed; `generate({level,
-seed})` returns a puzzle rated exactly at that level; the pin is green.
+**Goal:** `rate(grid)` returns a decision-16 score using techniques 1–10; `generate({level,
+seed})` produces a puzzle in that level's band; the pin stays `it.fails` only because
+techniques 11–14 are WP-D2's.
 
-- `packages/sudoku-core/src/techniques/` — one file per technique, each
-  `(state) => Step | null` over a candidate-bitmask state: `nakedSingle`,
-  `hiddenSingle`, `pointingPair` (box→line), `boxLineReduction`, `nakedPair`,
-  `hiddenPair`, `nakedTriple`, `hiddenTriple`, `xWing`, `swordfish`, `xyWing`, plus a
-  terminal `guess` marker if the ladder exhausts (→ `evil`).
-- `packages/sudoku-core/src/rater.ts` — runs the ladder cheapest-first to completion,
-  returns `Rating`. Level mapping (initial, WP-D may tune against Ben's resources and
-  **must record the final table in `ORCHESTRATION.md`**):
-  easy = singles only · medium = + pointing/box-line/naked pair · hard = + hidden pair,
-  triples · expert = + X-wing, swordfish, XY-wing · evil = needs a guess.
-- `packages/sudoku-core/src/level.ts` — `generate({level, seed})`: loop
-  `generatePuzzle({seed: seed+i})` until `rate().level === level`; give up after N
-  attempts with a thrown `GenerationFailed` naming the level. Record the observed
-  attempts-per-level distribution in the test comment — `evil` may be rare, and
-  **if any level cannot be produced within 200 attempts, report it rather than widening
-  the level's definition**.
-- Tests: each of the five fixtures rates at its stated level (this is where Ben's
-  resources matter — if a fixture disagrees with the ladder, report which, don't
-  silently reclassify); every technique file has a positive and a negative unit test on
-  a hand-built state; **flip `pin.test.ts` from `it.fails` to `it`**.
-- Delete the `generate`/`rate` stubs and the `NotImplemented` class if nothing else
-  throws it.
+- `packages/sudoku-core/src/techniques/` — one file per technique, `(state) => Step |
+  null` over a candidate-bitmask state, ids exactly as decision 16. WP-D writes
+  `nakedSingle`, `hiddenSingle`, `candidateLines`, `doublePairs`, `multipleLines`,
+  `nakedPair`, `hiddenPair`, `nakedTriple`, `hiddenTriple`, `xWing`. `doublePairs` and
+  `multipleLines` are SOTD's names for box/line reduction variants — read
+  https://www.sudokuoftheday.com/techniques for each before implementing and cite the
+  definition in the file header; **don't substitute a "standard" technique of your own
+  choosing**.
+- `packages/sudoku-core/src/techniques/index.ts` — `LADDER: TechniqueId[]` in cost
+  order and `COSTS` table (decision 16). WP-D2 appends its four ids here.
+- `packages/sudoku-core/src/rater.ts` — the loop from decision 16, returning `Rating`
+  or `null` on stall. `levelOf(score)` per decision 16.
+- `packages/sudoku-core/src/level.ts` — `BANDS`, `generate({level, seed})` =
+  `generatePuzzle({seed, target: BANDS[level], rate})` retried with `seed+i` on
+  `GenerationFailed`, up to 20 grids; then throws. Record observed grids-per-level and
+  wall time per level in the test comment. **If `fiendish`/`diabolical` are
+  unreachable with techniques 1–10, say so — that is expected and is WP-D2's job.**
+- Delete the `generate`/`rate` stubs from WP-A (per-symbol report).
+- Tests: each technique positive + negative on a hand-built state; the six fixtures:
+  every one whose SOTD score is ≤ tricky must rate at its level; the two hardest may
+  return `null` here.
 
-**Acceptance:** pin green as a plain `it`; five fixture ratings green; attempts
-distribution recorded; `pnpm check` green.
+**Acceptance:** fixtures beginner–tricky rate at their level; scores recorded next to
+SOTD's published ones; `generate` works for beginner–tricky; `pnpm check` green.
 
-Owns: `packages/sudoku-core/src/techniques/**`, `rater.ts`, `level.ts`, their tests,
-`pin.test.ts`, two export lines in `index.ts`, the level-table section of
-`ORCHESTRATION.md`. Size **L**. Depends: WP-B, WP-C.
+Owns: `packages/sudoku-core/src/techniques/{index,nakedSingle,…,xWing}.ts`, `rater.ts`,
+`level.ts`, their tests, two export lines in `index.ts`. Size **L**. Depends: WP-B,
+WP-C.
+
+### WP-D2 · Techniques 11–14, calibration, flip the pin
+
+**Goal:** the full ladder; every level reachable; the pin green; our scores calibrated
+against SOTD's.
+
+- `techniques/forcingChains.ts`, `nakedQuad.ts`, `hiddenQuad.ts`, `swordfish.ts`;
+  append to `LADDER` in `techniques/index.ts`. Forcing chains per SOTD's definition
+  (bounded-depth implication chains from a bivalue cell — cite the page); it is the
+  expensive one, so measure it.
+- Calibration test: for each of the six fixtures, our score vs SOTD's published score,
+  **asserting the level matches** and recording the delta. If a fixture lands in the
+  wrong band, report which technique the trace shows firing differently rather than
+  tuning costs — costs are decision 16 and are not to be adjusted.
+- **Flip `pin.test.ts` to a plain `it`.** Record grids-per-level and wall time for
+  `fiendish` and `diabolical` in the test comment; if either exceeds 3 s on the Mac
+  this feeds WP-G's pool decision.
+
+**Acceptance:** pin green; six fixture levels match; timing table recorded; `pnpm
+check` green.
+
+Owns: the four technique files + tests, `techniques/index.ts` (handed over from WP-D),
+`pin.test.ts`, `level.test.ts` timing comment. Size **L**. Depends: WP-D.
 
 ### WP-E · Web server: persistence + API
 
@@ -329,10 +397,10 @@ completion with real generated puzzles.
   puzzle whose givens `countSolutions === 1` (call core directly from the test) → enter
   values → reload → present → fill the solution (read `solution` straight from the DB
   file in the test, never from the API) → completion → history has one row with
-  `elapsedMs > 0` → `GET /api/game` 204 → `POST` a new `evil` game succeeds. Record
+  `elapsedMs > 0` → `GET /api/game` 204 → `POST` a new `diabolical` game succeeds. Record
   generation time for each level in the report (this is the first time the real
   generator meets the real server).
-- **Generation latency guard:** if `evil` takes > 3 s to generate on the Mac, add a
+- **Generation latency guard:** if `diabolical` takes > 3 s to generate on the Mac, add a
   server-side background pre-generation of one puzzle per level into a `puzzle_pool`
   table (migration `002_pool.sql`) and report the numbers. Don't add the pool if the
   numbers don't demand it.
@@ -343,7 +411,7 @@ generation latency table in the report and in `ORCHESTRATION.md`.
 
 Owns: `Dockerfile`, `docker-compose.yml`, `apps/web/e2e/**`, `apps/web/src/server/index.ts`
 (handed over from WP-E — WP-E is finished by then), `.github/workflows/ci.yml`,
-`README.md`, `ORCHESTRATION.md` (latency section). Size **L**. Depends: WP-D, WP-E, WP-F.
+`README.md`, `ORCHESTRATION.md` (latency section). Size **L**. Depends: WP-D2, WP-E, WP-F.
 
 ## Wave table
 
@@ -351,9 +419,10 @@ Owns: `Dockerfile`, `docker-compose.yml`, `apps/web/e2e/**`, `apps/web/src/serve
 | ---- | ---------------- | --------------------------------------------------------------------------------------- |
 | 1    | WP-A             | alone — owns the whole tree, creates the contract everyone else builds against          |
 | 2    | WP-B + WP-E + WP-F | disjoint: `packages/sudoku-core/src/{grid,solver}.ts` vs `apps/web/src/server/**` vs `apps/web/src/client/**`. Shared file `apps/web/package.json`: WP-E commits first, WP-F rebases (see WP-E). `index.ts` export lines: WP-B only in this wave. |
-| 3    | WP-C             | alone — only core package changes; nothing else pending                                 |
-| 4    | WP-D             | alone — owns `index.ts` export lines, `pin.test.ts`, `ORCHESTRATION.md` section          |
-| 5    | WP-G             | alone — owns the choke points (`ci.yml`, `server/index.ts`, `README.md`)                |
+| 3    | WP-C             | alone — generator with a fake rater; only core package changes                          |
+| 4    | WP-D             | alone — owns `techniques/index.ts`, `rater.ts`, `level.ts`, `index.ts` export lines      |
+| 5    | WP-D2            | alone — takes over `techniques/index.ts` and `pin.test.ts`                              |
+| 6    | WP-G             | alone — owns the choke points (`ci.yml`, `server/index.ts`, `README.md`)                |
 
 Checked against `Owns`: wave 2's three file sets share no file except `apps/web/package.json`
 (sequenced above) and `pnpm-lock.yaml` (regenerated by whichever commits last; the
@@ -361,10 +430,11 @@ orchestrator runs `pnpm install` and commits the lock once after the wave lands 
 else commits it).
 
 **Choke points, never co-owned:** `packages/sudoku-core/src/index.ts`,
+`packages/sudoku-core/src/techniques/index.ts`,
 `apps/web/src/shared/api.ts` (frozen after wave 1 — changes are routed, not made),
 `apps/web/package.json`, `pnpm-lock.yaml`, `.github/workflows/ci.yml`, `ORCHESTRATION.md`.
 
-Rough total: **5 waves**, 7 packages, three of them concurrent in wave 2.
+Rough total: **6 waves**, 8 packages, three of them concurrent in wave 2.
 
 ## The regression to fear
 
@@ -413,8 +483,7 @@ uses it (via `SUDOKU_FIXTURE=awkward`) for its browser screenshot.
    15 with `check` as the required context; logs to `/tmp/sudoku-repo-setup.log`).
    Required-check context `docker` is added after WP-G lands — the orchestrator asks
    for it then, with the one-line command.
-2. **The rating resources** Ben mentioned — hand them to the orchestrator; they go into
-   WP-D's brief (and may replace WP-A's fixtures). Without them WP-D uses the ladder in
-   decision-4/WP-D as written.
+2. ~~Rating resources~~ — received 2026-08-29: sudokuoftheday.com/difficulty and
+   /creation, folded into decisions 4, 16, 17. Nothing further needed.
 3. Confirmed by this plan, not asked again: no abandon button (decision 8), no auth
    (decision 7), SQLite on a volume (decision 6), React (decision 7).
