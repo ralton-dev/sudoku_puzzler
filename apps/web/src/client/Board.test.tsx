@@ -19,6 +19,17 @@ import { Board } from './Board';
 // box); cell 3 is empty with marks; cell 4 is filled but still carries marks.
 const GIVENS = `53${'0'.repeat(79)}`;
 
+/**
+ * Nine 9s, one to a row, column and box — a digit the player has finished.
+ * Placed legally so the board is only as awkward as it means to be: the count
+ * is real, not a conflicting pile of the same digit.
+ */
+const NINES = [5, 17, 20, 33, 36, 48, 61, 64, 76];
+
+/** A 7 and a 5 that share no unit with the 7 at cell 4 or the 5s in row 0. */
+const LONE_SEVEN = 60;
+const LONE_FIVE = 70;
+
 function initialCells(): CellState[] {
   const cells: CellState[] = Array.from({ length: 81 }, () => ({
     value: 0 as Digit,
@@ -29,6 +40,9 @@ function initialCells(): CellState[] {
   cells[2] = { value: 5, marks: [] };
   cells[3] = { value: 0, marks: [1, 4, 9] };
   cells[4] = { value: 7, marks: [2, 6] };
+  cells[LONE_SEVEN] = { value: 7, marks: [] };
+  cells[LONE_FIVE] = { value: 5, marks: [] };
+  for (const index of NINES) cells[index] = { value: 9, marks: [] };
   return cells;
 }
 
@@ -93,6 +107,13 @@ function setup(startInMarkMode = false) {
 
 const attr = (index: number, name: string): string | null =>
   screen.getByTestId(`cell-${index}`).getAttribute(name);
+
+const classesOf = (index: number): string => screen.getByTestId(`cell-${index}`).className;
+
+const sameDigitCells = (): number[] =>
+  Array.from(document.querySelectorAll('.cell-same'), (el) =>
+    Number(el.getAttribute('data-index')),
+  ).sort((a, b) => a - b);
 
 const marksOf = (index: number): string[] =>
   Array.from(
@@ -203,5 +224,53 @@ describe('keyboard', () => {
 
     await user.keyboard('{Shift>}8{/Shift}');
     expect(spies.setValue).toHaveBeenCalledWith(3, 8);
+  });
+});
+
+describe('same-digit highlighting', () => {
+  it('tints every other cell holding the selected digit, but not the selection itself', async () => {
+    const { user } = setup();
+
+    await user.click(screen.getByTestId(`cell-${LONE_SEVEN}`));
+
+    // Cell 4 holds the other 7. The selected cell keeps its own highlight and
+    // never doubles as a same-number one.
+    expect(sameDigitCells()).toEqual([4]);
+    expect(classesOf(LONE_SEVEN)).toContain('cell-selected');
+    expect(classesOf(LONE_SEVEN)).not.toContain('cell-same');
+    expect(attr(LONE_SEVEN, 'aria-selected')).toBe('true');
+    expect(attr(4, 'aria-selected')).toBe('false');
+  });
+
+  it('works from a given, and a conflict outranks the same-number tint', async () => {
+    const { user } = setup();
+
+    await user.click(screen.getByTestId('cell-0'));
+
+    // Cells 2 and 70 are the other 5s; 2 is a conflict, so it keeps the
+    // conflict backdrop rather than the softer same-number one.
+    expect(sameDigitCells()).toEqual([LONE_FIVE]);
+    expect(classesOf(2)).toContain('cell-conflict');
+    expect(classesOf(2)).not.toContain('cell-same');
+    expect(classesOf(1)).not.toContain('cell-same');
+  });
+
+  it('highlights nothing extra when the selected cell is empty', async () => {
+    const { user } = setup();
+
+    await user.click(screen.getByTestId('cell-3'));
+    expect(sameDigitCells()).toEqual([]);
+  });
+
+  it('follows the keyboard: arrowing onto a digit lights the same ones a click would', async () => {
+    const { user } = setup();
+
+    await user.click(screen.getByTestId('cell-51'));
+    expect(sameDigitCells()).toEqual([]);
+
+    // 51 -> 60 is one row down, onto the lone 7.
+    await user.keyboard('{ArrowDown}');
+    expect(attr(LONE_SEVEN, 'aria-selected')).toBe('true');
+    expect(sameDigitCells()).toEqual([4]);
   });
 });

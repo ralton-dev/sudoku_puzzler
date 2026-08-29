@@ -12,6 +12,10 @@
  *
  * The grid never refuses an edit for being "wrong": conflicts are highlighted,
  * not blocked. The only edit it refuses is one to a given.
+ *
+ * Selecting a cell that holds a digit lights every other cell holding that
+ * digit (`cell-same`) — the "where else is this number" scan a player does by
+ * eye, done for them. Selecting an empty cell lights nothing extra.
  */
 
 import { useCallback, useRef, type KeyboardEvent as ReactKeyboardEvent } from 'react';
@@ -64,6 +68,9 @@ export function Board({
   const gridRef = useRef<HTMLDivElement>(null);
 
   const isGiven = useCallback((index: number) => (givens[index] ?? '0') !== '0', [givens]);
+
+  /** The digit under the selection, or 0 for an empty cell or no selection. */
+  const selectedDigit = selected === null ? 0 : (cells[selected]?.value ?? 0);
 
   const move = useCallback(
     (from: number | null, dRow: number, dCol: number) => {
@@ -155,6 +162,7 @@ export function Board({
             given={isGiven(index)}
             selected={selected === index}
             peer={selected !== null && sharesUnit(selected, index)}
+            sameDigit={selectedDigit !== 0 && cell.value === selectedDigit && index !== selected}
             conflict={conflicts.has(index)}
             wrong={wrongCells.has(index)}
             onSelect={select}
