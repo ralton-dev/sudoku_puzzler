@@ -15,6 +15,16 @@
  *
  * Ports are deliberately far from 8080/5173: a developer's own server may be
  * running while the suite is.
+ *
+ * Both boots also set `SQLITE_EXCLUSIVE=false`. The
+ * shipped default is `true` — `locking_mode = EXCLUSIVE`, which is what makes
+ * WAL safe on the home lab's NFS volume (contract §6) — and the price of it is
+ * that no second process can open the file at all, not even read-only, not
+ * even while the database is idle. `e2e/db.ts` is exactly such a process: the
+ * plan requires the solution to come from the file rather than from the API,
+ * so the suite opts out and the production default stays on. The one thing
+ * this costs is that the e2e does not exercise the locking mode the container
+ * uses; `db.test.ts` covers that pragma directly instead.
  */
 
 import { join } from 'node:path';
@@ -36,14 +46,14 @@ export const PRODUCTION: E2eServer = {
   dataDir: join(dataRoot, 'production'),
   // No SUDOKU_FIXTURE: this is the real generator, first contact with the real
   // server. Anything the fixtures paper over shows up here.
-  env: {},
+  env: { SQLITE_EXCLUSIVE: 'false' },
 };
 
 export const AWKWARD: E2eServer = {
   name: 'awkward',
   port: 18091,
   dataDir: join(dataRoot, 'awkward'),
-  env: { SUDOKU_FIXTURE: 'awkward' },
+  env: { SUDOKU_FIXTURE: 'awkward', SQLITE_EXCLUSIVE: 'false' },
 };
 
 export const baseUrl = (server: E2eServer): string => `http://127.0.0.1:${server.port}`;

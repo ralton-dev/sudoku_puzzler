@@ -11,6 +11,10 @@
  * server runs the database in WAL mode, and a read-only connection to a WAL
  * database cannot create the shared-memory file it needs when it is the only
  * one left holding it. Nothing here issues anything but SELECT.
+ *
+ * This only works because both e2e servers boot with `SQLITE_EXCLUSIVE=false`
+ * (`servers.ts`). The shipped default takes SQLite's exclusive lock, and under
+ * it every one of these opens fails with `SQLITE_BUSY` regardless of mode.
  */
 
 import Database from 'better-sqlite3';

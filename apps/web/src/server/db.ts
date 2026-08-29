@@ -2,9 +2,10 @@
  * SQLite, opened and migrated (decision 6).
  *
  * One file at `DATA_DIR/sudoku.db`, WAL so a reader never blocks the writer,
- * and plain numbered `.sql` files under `migrations/` applied in filename order
- * and recorded in `schema_migrations`. Nothing here knows about games; that is
- * `routes.ts`.
+ * exclusively locked so WAL is safe on the NFS volume it lives on in the home
+ * lab, and plain numbered `.sql` files under `migrations/` applied in filename
+ * order and recorded in `schema_migrations`. Nothing here knows about games;
+ * that is `routes.ts`.
  */
 
 import Database from 'better-sqlite3';
@@ -83,11 +84,43 @@ export function migrate(db: Db, dir: string = migrationsDir()): string[] {
   return pending;
 }
 
+/**
+ * Whether to take the exclusive lock — `SQLITE_EXCLUSIVE`, **default on**.
+ *
+ * On by default because the deployment is the case that must not be got wrong,
+ * and a flag you have to remember to set is a flag that ships unset. The one
+ * caller that turns it off is `apps/web/e2e`, which reads the solution out of
+ * the running server's database file from a second process (`e2e/db.ts`), and
+ * cannot while the server holds the lock.
+ *
+ * That conflict is real and was measured rather than assumed: with the pragma
+ * set, a second connection — same process or another, read-write **or**
+ * read-only, against a completely quiescent database — fails immediately with
+ * `SQLITE_BUSY: database is locked`. SQLite takes the lock on first access and
+ * never lets go, so "acquire it lazily on first write and let readers in
+ * meanwhile" is not a behaviour that exists. An environment switch is
+ * therefore the only way to keep both the NFS guarantee and that e2e.
+ */
+export function exclusiveLocking(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env.SQLITE_EXCLUSIVE !== 'false';
+}
+
 /** Open (creating the directory if needed) and migrate `<dir>/sudoku.db`. */
-export function openDb(dir: string = dataDir()): Db {
+export function openDb(dir: string = dataDir(), env: NodeJS.ProcessEnv = process.env): Db {
   mkdirSync(dir, { recursive: true });
   const db = new Database(join(dir, 'sudoku.db'));
   db.pragma('journal_mode = WAL');
+  if (exclusiveLocking(env)) {
+    // Single process; keeps the WAL index in heap so `-shm` is never used;
+    // makes WAL safe on NFS. Trade-off: no concurrent external readers — while
+    // this server is up, `sqlite3 /data/sudoku.db` from a debug shell gets
+    // `database is locked`. Stop the pod, or copy the file first.
+    db.pragma('locking_mode = EXCLUSIVE');
+  }
+  // Outside the branch on purpose: it is the grace window for the *next*
+  // process, which may reach the file a moment before the one being replaced
+  // has let go of it.
+  db.pragma('busy_timeout = 5000');
   db.pragma('foreign_keys = ON');
   migrate(db);
   return db;

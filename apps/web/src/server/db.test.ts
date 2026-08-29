@@ -54,6 +54,40 @@ describe('migrations', () => {
   });
 });
 
+describe('locking mode (homelab contract §6 — WAL on NFS)', () => {
+  const pragma = (handle: Db, name: string): string =>
+    String(handle.pragma(name, { simple: true })).toLowerCase();
+
+  it('takes the exclusive lock by default, on top of WAL, with a busy timeout', () => {
+    expect(pragma(db, 'journal_mode')).toBe('wal');
+    expect(pragma(db, 'locking_mode')).toBe('exclusive');
+    // The grace window for the pod replacing this one, which may open the file
+    // a moment before the old process has released it.
+    expect(db.pragma('busy_timeout', { simple: true })).toBe(5000);
+  });
+
+  it('never creates a -shm file — which is the whole reason for the pragma', () => {
+    // WAL's shared-memory index is only coherent between processes on one
+    // host, so a `-shm` file on an NFS volume is the documented unsafe case.
+    // Exclusive locking keeps that index in heap memory instead, and the
+    // observable consequence is this: the file is never created.
+    insertGameRow('writes-something', null);
+    expect(readdirSync(dir).filter((name) => name.endsWith('-shm'))).toEqual([]);
+  });
+
+  it('leaves locking normal when SQLITE_EXCLUSIVE=false, so another process can read', () => {
+    const other = mkdtempSync(join(tmpdir(), 'sudoku-wpe-db-shared-'));
+    const shared = openDb(other, { SQLITE_EXCLUSIVE: 'false' });
+    try {
+      expect(pragma(shared, 'journal_mode')).toBe('wal');
+      expect(pragma(shared, 'locking_mode')).toBe('normal');
+    } finally {
+      shared.close();
+      rmSync(other, { recursive: true, force: true });
+    }
+  });
+});
+
 describe('one active game, at the DB level (decision 8)', () => {
   it('refuses a second row with completed_at IS NULL, inserted directly', () => {
     insertGameRow('first', null);
