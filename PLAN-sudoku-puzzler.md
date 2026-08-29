@@ -62,6 +62,23 @@ rows, so any device on the home lab shows the same board and nothing is lost on 
     (`feat(core): …`, `feat(web): …`, `chore(repo): …`), no `Co-Authored-By` trailers,
     stage owned paths by name only, never `git add -A`/`git stash`/`git restore`/
     `git checkout --`. Commit direct to `main`.
+15. **Public repo under the org with the org's standard protections** (mirrored from
+    `ralton-dev/finance-planner`, the most complete public sibling, read 2026-08-29):
+    - visibility **public**, licence **MIT**, org `ralton-dev`.
+    - classic branch protection on `main`: 1 required approving review, dismiss stale
+      reviews, required conversation resolution, required linear history, no force
+      pushes, no deletions, **required status checks strict** (contexts = the CI job
+      names, added once they exist), **`enforce_admins: false`** — this is what keeps
+      Ben's direct-to-main workflow (decision 14) working: Ben is org admin and bypasses
+      the PR gate; anyone else (Dependabot, a fork) must go through a reviewed, green PR.
+    - security_and_analysis: secret scanning **on**, push protection **on**, Dependabot
+      security updates **on**, vulnerability alerts **on**.
+    - in-tree: `LICENSE` (MIT), `.github/dependabot.yml` (weekly Monday 06:00
+      Europe/London, npm minor+patch grouped, github-actions, docker for `apps/web`),
+      `.github/workflows/codeql.yml` (javascript-typescript).
+    Settings that live in GitHub, not the tree, are applied by the human via
+    `/tmp/sudoku-repo-setup.sh` (see "What to bring the human") — agents never call the
+    GitHub settings API.
 
 ## The red pin
 
@@ -89,9 +106,14 @@ and the tree documents that the gap is known.
 **Goal:** a git repo with green CI, a workspace that type-checks and tests, the frozen
 core API and HTTP contract, the red pin, and the first `ORCHESTRATION.md`.
 
-- `git init`, `main` branch, `.gitignore` (node_modules, dist, data/, *.db, coverage).
-  Remote is `github.com/ralton-dev/sudoku_puzzler` — **creating it is the human's step**
-  (see "What to bring the human"); WP-A adds the remote if it exists, otherwise notes it.
+- Repo already initialised with the plan committed. Remote is
+  `github.com/ralton-dev/sudoku_puzzler` (public) — **creating it and applying decision
+  15's protections is the human's step**; WP-A pushes if `origin` exists, otherwise
+  reports that CI is unverified.
+- `.gitignore` (node_modules, dist, data/, *.db, coverage), `LICENSE` (MIT, copyright
+  "Ben Ralton"), `.github/dependabot.yml` and `.github/workflows/codeql.yml` per
+  decision 15 — copy the shape from `ralton-dev/finance-planner`, trimmed to this
+  repo's one Docker directory.
 - `pnpm-workspace.yaml`, root `package.json` with scripts `lint`, `typecheck`, `test`,
   `build`, `check` (= all four in that order). Root `tsconfig.base.json` (strict, ES2022,
   `noUncheckedIndexedAccess`). ESLint flat config + Prettier. Vitest at root with
@@ -123,8 +145,10 @@ core API and HTTP contract, the red pin, and the first `ORCHESTRATION.md`.
   POST /api/game/complete   → 200 HistoryEntry | 409 {error:'not-solved', wrongCells:number[]} | 404
   GET  /api/history         → 200 HistoryEntry[] (newest first)
   ```
-- `.github/workflows/ci.yml` — pnpm install (frozen lockfile), `pnpm check`, on push
-  and PR to `main`. Node 22.
+- `.github/workflows/ci.yml` — one job named **`check`** (pnpm install with frozen
+  lockfile, then `pnpm check`), on push and PR to `main`, Node 22. **The job name is a
+  contract**: it becomes a required status check in branch protection. WP-G adds a
+  second job named **`docker`**; nobody renames either.
 - `ORCHESTRATION.md` — verification gate is `pnpm check`; boot is `pnpm --filter web
   dev`; the decisions above are referenced not restated; the freeze/commit rules from
   decision 14; the choke-point files from the wave table.
@@ -382,9 +406,13 @@ uses it (via `SUDOKU_FIXTURE=awkward`) for its browser screenshot.
 
 ## What to bring the human (settle before wave 1)
 
-1. **Create the GitHub remote** `ralton-dev/sudoku_puzzler` (private is fine) — WP-A needs
-   it for CI to be verifiable. `gh repo create ralton-dev/sudoku_puzzler --private` from the
-   repo after WP-A's first commit, or before and WP-A adds the remote.
+1. **Create the public org repo and apply its protections** — run
+   `! bash /tmp/sudoku-repo-setup.sh` (creates `ralton-dev/sudoku_puzzler` public,
+   pushes `main`, enables secret scanning / push protection / Dependabot security
+   updates / vulnerability alerts, applies the classic `main` protection from decision
+   15 with `check` as the required context; logs to `/tmp/sudoku-repo-setup.log`).
+   Required-check context `docker` is added after WP-G lands — the orchestrator asks
+   for it then, with the one-line command.
 2. **The rating resources** Ben mentioned — hand them to the orchestrator; they go into
    WP-D's brief (and may replace WP-A's fixtures). Without them WP-D uses the ladder in
    decision-4/WP-D as written.
