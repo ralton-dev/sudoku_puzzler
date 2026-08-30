@@ -101,6 +101,28 @@ Wave 2 is the only wave with concurrency in the core+web split: WP-B is in
 WP-F in `apps/web/src/client/**`. They share only `apps/web/package.json` and the
 lockfile, both sequenced above.
 
+## State as of 2026-08-30
+
+All ten plan packages landed on 2026-08-29; the plan is done. Since then, on
+`main`, in order: the awkward fixture pencils its marks into the empty cell
+(`bee19b9`); multi-arch CI publishing to `ghcr.io/ralton-dev/sudoku-puzzler`
+(`aac1c02`); `/healthz`, `/readyz`, `APP_VERSION` and exclusive SQLite locking
+for the NFS volume (`841f3c9`..`c0b0ac0`); same-digit highlighting, deselect
+after entry, keypad counts with the nine-cap, "Pre-filled" in history
+(`6d1804b`..`d2b2fdf`); the paper palette, self-hosted type, logo mark and
+favicon set (`5f9b558`..`f561044`).
+
+**Deployed** at `sudoku.ralton.dev` from the private `homelab-k8s` repo
+(`manifests/sudoku-puzzler/`). A release is: push here → CI publishes
+`sha-<full sha>` → bump `image:` and `APP_VERSION` in that manifest → Argo rolls
+it (`Recreate`, one pod, RWO NFS volume). Verify a release by `/healthz`
+reporting the tag, 0 restarts, and `/data` holding `sudoku.db` + `-wal` with
+**no `-shm`**. Do not push a docs-only commit here while an image build is in
+flight — the CI concurrency group cancels the build.
+
+Offered, not asked for: an in-game hint button from the rater's `Step` trace.
+Parked: Dependabot majors #1–#7 (vitest 3/4 need `test.projects`).
+
 ## Package ledger
 
 | WP        | what                                             | wave | status                                         |
@@ -227,10 +249,10 @@ README's configuration table lists — that table is what the ConfigMap is built
 from, so a new variable that is not in it does not reach the cluster.
 
 Two things in it are decisions rather than facts, recorded in the README:
-migrations run at **boot** rather than as a separate job (§7 option 1 — SQLite
+migrations run at **boot** rather than as a separate job (SQLite
 is single-writer on one RWO volume, and `/readyz` holds traffic off until the
 schema is current), and `locking_mode = EXCLUSIVE` is on by default with
-`SQLITE_EXCLUSIVE=false` as the opt-out (§6, and the pitfall below).
+`SQLITE_EXCLUSIVE=false` as the opt-out (see the pitfall below).
 
 Nothing here deploys itself. The manifests live in `homelab-k8s` and a human
 points them at a new `sha-<full-sha>` tag; Argo CD does the rest.
