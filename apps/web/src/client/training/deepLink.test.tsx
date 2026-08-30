@@ -25,7 +25,7 @@
  */
 
 import { act, render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { examplesFor, type TrainingExample } from 'sudoku-core';
 import type { ActiveGame, CellState, Digit } from '../../shared/api';

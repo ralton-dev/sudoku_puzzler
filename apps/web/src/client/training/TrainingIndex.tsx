@@ -13,7 +13,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { TECHNIQUE_IDS, TECHNIQUE_META, type TechniqueId, examplesFor } from 'sudoku-core';
 import { SUMMARIES } from './content';
 import { clearDone, readDone } from './progress';

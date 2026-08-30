@@ -10,7 +10,7 @@
  */
 
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TECHNIQUE_IDS, TECHNIQUE_META } from 'sudoku-core';
 import { TrainingIndex } from './TrainingIndex';

@@ -7,12 +7,14 @@
  * (`/`), and every unknown path falls back to it.
  *
  * WP-T2 adds `/training` and `/training/:technique` here and one more line in
- * `<nav>`; the router is `react-router-dom` v6 (`BrowserRouter` is mounted in
+ * `<nav>`; the router is `react-router` v8 (`BrowserRouter` is mounted in
  * `main.tsx`), so a nested route with `useParams()` is all that is needed.
+ * v8 dropped the `react-router-dom` package: the declarative components all
+ * come from `react-router` itself now, and the route structure is unchanged.
  */
 
 import { useCallback, useState } from 'react';
-import { NavLink, Route, Routes, Navigate } from 'react-router-dom';
+import { NavLink, Route, Routes, Navigate } from 'react-router';
 import { Board } from './Board';
 import { History } from './History';
 import { Keypad } from './Keypad';
