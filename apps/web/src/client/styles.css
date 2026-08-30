@@ -6,41 +6,197 @@
  *
  * Pencil marks are their own 3x3 grid inside a cell, always nine slots, so a
  * mark never moves when its neighbours appear or disappear.
+ *
+ * ## The world it is drawn from
+ *
+ * A personal pencil-and-paper puzzle page. Cool graph-paper white, graphite for
+ * what was printed, a blue pencil for what you wrote, a real highlighter for
+ * where you are. The page has one job and it is the board.
+ *
+ * Two layers of colour: the named palette below (`--paper`, `--graphite`,
+ * `--pencil`, `--highlighter`, `--sage`, `--rubric`) is the world, and the
+ * semantic names under it (`--ink`, `--line`, `--panel`, `--accent`, …) are
+ * what the components — and `training/training.css`, which reads them — ask
+ * for. Change a colour in the first block; the second block is plumbing.
  */
 
+/* --- faces -------------------------------------------------------------- */
+
+/*
+ * Self-hosted, latin + latin-ext only, from the `@fontsource*` packages in
+ * `package.json`. Their own CSS entry points carry every subset (cyrillic,
+ * greek, vietnamese, …) — about 700 kB of woff2 emitted into `dist/client` for
+ * an app that is entirely in English — so the faces are declared here and the
+ * two files each one actually needs are named directly. Nothing is fetched
+ * from a third party at any point; that is the whole reason these are npm
+ * packages and not a Google Fonts <link>.
+ */
+
+/* IBM Plex Sans — the board, the keypad, the UI. Drawn for technical
+   documentation, so the figures are the part that was worked hardest:
+   tabular by default, an unmistakable 1, and a 4 that is never a 9 at the
+   11 px a pencil mark is set in. */
+@font-face {
+  font-family: 'Plex Sans';
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: swap;
+  src: url('@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-wght-normal.woff2')
+    format('woff2-variations');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Plex Sans';
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: swap;
+  src: url('@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-ext-wght-normal.woff2')
+    format('woff2-variations');
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+/* The fallback that stands in for the 40 ms before Plex Sans arrives. The
+   numbers are measured, not guessed: Plex Sans sets the same string 3.1 %
+   wider than Helvetica at the same size, and its ascent/descent are 102/27 %
+   of the em, so the overrides are those divided by the size-adjust. With this
+   face in the stack the swap changes the shapes and moves nothing. */
+@font-face {
+  font-family: 'Plex Sans Fallback';
+  src: local('Helvetica Neue'), local('Helvetica'), local('Arial'), local('Roboto');
+  size-adjust: 103.1%;
+  ascent-override: 98.9%;
+  descent-override: 26.2%;
+  line-gap-override: 0%;
+}
+
+/* Bricolage Grotesque — the wordmark and the headings, and nothing else. A
+   grotesque with uneven joins and a real optical-size range: character without
+   a serif, which is what keeps this off the broadsheet shelf.
+   `font-display: optional` rather than `swap`: a display face is a handful of
+   short lines, and optional is the one value that cannot reflow them. */
+@font-face {
+  font-family: 'Bricolage';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: optional;
+  src: url('@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2')
+    format('woff2-variations');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* IBM Plex Mono — the timer, the keypad counts, the costs. A readout, and a
+   sibling of the board's face rather than a guest. One weight; `optional` for
+   the same reason as the display face. */
+@font-face {
+  font-family: 'Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url('@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* --- the palette -------------------------------------------------------- */
+
 :root {
-  --bg: #f6f5f1;
-  --panel: #ffffff;
-  --ink: #1c1b19;
-  --ink-soft: #6b6862;
-  --line: #cfcabf;
-  --line-strong: #4a4741;
-  --entered: #1b5fa8;
-  --selected: #d8e8fb;
-  --peer: #eef2f7;
-  --same: #dcebdd;
-  --conflict: #fbe0dd;
-  --conflict-ink: #a8261b;
-  --wrong: #f6c9c3;
-  --accent: #1b5fa8;
+  /* paper: a cool graph-paper white. Not cream — cream turns a blue pencil
+     muddy, and it is the ground every "paper" interface already uses. */
+  --paper: #eff2f5;
+  --sheet: #fdfdfe;
+  /* graphite: printed ink. Givens, headings, body. */
+  --graphite: #20262e;
+  --graphite-soft: #626a75;
+  /* pencil: the blue everything the player entered is written in. It is also
+     the interface's accent, because the game's own convention should be the
+     thing that colours the page. */
+  --pencil: #1f5fa9;
+  /* highlighter: translucent, laid over the paper and under the ink, exactly
+     as a felt-tip is. The one colour here that comes from a pen. */
+  --highlighter: rgb(255 214 10 / 55%);
+  /* sage: "where else is this number". Quieter than the highlighter on
+     purpose — it answers a question, it does not say where you are. */
+  --sage: #d6e4d2;
+  /* rubric: red ink, soft ground. Conflicts and wrong cells. */
+  --rubric: #f3d9d4;
+  --rubric-deep: #efc7c0;
+  --rubric-ink: #a5251a;
+
+  --rule: #c9d0d8;
+  --rule-heavy: #20262e;
+  --tint: #edf0f4;
+  --graph: rgb(32 38 46 / 5%);
+
+  --sans:
+    'Plex Sans', 'Plex Sans Fallback', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    sans-serif;
+  --display: 'Bricolage', 'Plex Sans', 'Plex Sans Fallback', ui-sans-serif, system-ui, sans-serif;
+  --mono: 'Plex Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
+
+  /* The mark's own geometry, reused by the board so the two are visibly the
+     same drawing: 3/32 stroke, 6/32 radius on a 32-unit square. */
+  --frame: 3px;
+  --radius: 10px;
+
+  /* The board decides the layout. 90vw keeps it whole on the narrowest phone;
+     30rem stops it swelling on a desktop; the height term keeps the keypad
+     above the fold on a short window. */
+  --board-size: min(90vw, 30rem);
+
+  /* semantic layer — what the components ask for */
+  --bg: var(--paper);
+  --panel: var(--sheet);
+  --ink: var(--graphite);
+  --ink-soft: var(--graphite-soft);
+  --line: var(--rule);
+  --line-strong: var(--rule-heavy);
+  --entered: var(--pencil);
+  --peer: var(--tint);
+  --same: var(--sage);
+  --conflict: var(--rubric);
+  --conflict-ink: var(--rubric-ink);
+  --wrong: var(--rubric-deep);
+  --accent: var(--pencil);
+
   color-scheme: light dark;
 }
 
+@supports (height: 100svh) {
+  :root {
+    --board-size: min(90vw, 30rem, calc(100svh - 18.5rem));
+  }
+}
+
+/* The same paper, inverted whole: graphite paper, chalk rules, and a
+   highlighter that has to be dimmer because it is now lying on a dark sheet.
+   Every token above is redefined here; nothing is left to inherit a light
+   value by accident. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #17181a;
-    --panel: #202225;
-    --ink: #ecebe8;
-    --ink-soft: #9a978f;
-    --line: #3a3d42;
-    --line-strong: #8a8f96;
-    --entered: #7db4f0;
-    --selected: #2b3f57;
-    --peer: #26292d;
-    --conflict: #4a2420;
-    --conflict-ink: #ff9a8d;
-    --wrong: #63302a;
-    --accent: #7db4f0;
+    --paper: #15181c;
+    --sheet: #1e2227;
+    --graphite: #e7eaee;
+    --graphite-soft: #98a0aa;
+    --pencil: #7fb6ee;
+    --highlighter: rgb(255 214 10 / 22%);
+    --sage: #27362a;
+    --rubric: #452421;
+    --rubric-deep: #5d2e28;
+    --rubric-ink: #f0a79a;
+
+    --rule: #333940;
+    --rule-heavy: #7c858f;
+    --tint: #23272d;
+    --graph: rgb(231 234 238 / 4%);
   }
 }
 
@@ -52,12 +208,22 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font:
-    16px/1.5 ui-sans-serif,
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    sans-serif;
+  font: 16px/1.55 var(--sans);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* The graph paper itself, at the faintest weight that still registers. Fixed,
+   so the page slides over the ruling rather than dragging it along. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--graph) 1px, transparent 1px),
+    linear-gradient(90deg, var(--graph) 1px, transparent 1px);
+  background-size: 26px 26px;
 }
 
 .app {
@@ -66,32 +232,55 @@ body {
   padding: 1rem 1rem 4rem;
 }
 
+/* --- header ------------------------------------------------------------- */
+
 .app-header {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.5rem 1.5rem;
+  align-items: center;
+  gap: 0.4rem 1.5rem;
   border-bottom: 1px solid var(--line);
-  padding-bottom: 0.75rem;
+  padding-bottom: 0.7rem;
   margin-bottom: 1.25rem;
 }
 
-.app-header h1 {
-  font-size: 1.25rem;
-  letter-spacing: 0.02em;
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
   margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-family: var(--display);
+  letter-spacing: -0.015em;
+}
+
+.brand-mark {
+  display: block;
+  width: 28px;
+  height: 28px;
+  flex: none;
 }
 
 .app-nav {
   display: flex;
-  gap: 1rem;
+  gap: 1.1rem;
   margin-left: auto;
+  font-size: 0.9375rem;
+}
+
+/* Once the header wraps, the nav is its own line and belongs under the
+   wordmark rather than adrift on the right. */
+@media (width <= 30rem) {
+  .app-nav {
+    margin-left: 0;
+  }
 }
 
 .app-nav a {
   color: var(--ink-soft);
   text-decoration: none;
-  padding-bottom: 2px;
+  padding-bottom: 3px;
   border-bottom: 2px solid transparent;
 }
 
@@ -100,8 +289,24 @@ body {
 }
 
 .app-nav a.active {
-  color: var(--accent);
+  color: var(--ink);
   border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.app-nav a:focus-visible,
+.tr-crumb a:focus-visible,
+.tr-prose a:focus-visible,
+.tr-lede a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+h2,
+h3 {
+  font-family: var(--display);
+  letter-spacing: -0.01em;
 }
 
 .notice {
@@ -113,29 +318,46 @@ body {
   color: var(--conflict-ink);
 }
 
-/* --- game bar ---------------------------------------------------------- */
+/* --- game bar ----------------------------------------------------------- */
+
+/* The game column is the board's width and nothing else, so the bar above it
+   and the keypad below it line up with the grid's edges on every screen. */
+.game {
+  width: var(--board-size);
+  margin: 0 auto;
+}
+
+.game > * {
+  width: 100%;
+}
 
 .game-bar {
   display: flex;
   align-items: baseline;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
+  gap: 0.85rem;
+  margin-bottom: 0.6rem;
 }
 
 .game-level {
-  text-transform: capitalize;
-  font-weight: 600;
+  text-transform: uppercase;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.09em;
+  color: var(--ink-soft);
 }
 
 .timer {
+  font-family: var(--mono);
   font-variant-numeric: tabular-nums;
-  font-size: 1.5rem;
-  letter-spacing: 0.02em;
+  font-size: 1.375rem;
+  letter-spacing: -0.01em;
 }
 
 .save-indicator {
   margin-left: auto;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
   color: var(--ink-soft);
 }
 
@@ -144,22 +366,30 @@ body {
   font-weight: 600;
 }
 
-/* --- board ------------------------------------------------------------- */
+/* --- board -------------------------------------------------------------- */
 
+/* The frame is the mark, scaled up: the same stroke weight and the same corner
+   radius. `overflow: hidden` is what lets the corner cells take the curve. */
 .board {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
-  width: min(100%, 32rem);
+  width: 100%;
   aspect-ratio: 1;
   background: var(--panel);
-  border: 2px solid var(--line-strong);
+  border: var(--frame) solid var(--line-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
   outline: none;
   touch-action: manipulation;
   user-select: none;
 }
 
+/* Quiet on purpose: `Board` focuses the grid programmatically after a tap, so
+   Chrome calls that focus-visible and this ring is on screen after every
+   click. It has to say "typing goes here" without competing with the frame. */
 .board:focus-visible {
-  box-shadow: 0 0 0 3px var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .cell {
@@ -194,48 +424,68 @@ body {
   background: var(--peer);
 }
 
-.cell-selected {
-  background: var(--selected);
-}
-
-/* Every other cell holding the digit under the selection. Softer than
-   --selected on purpose: it answers "where else is this number", it does not
+/* Every other cell holding the digit under the selection. Softer than the
+   highlighter on purpose: it answers "where else is this number", it does not
    compete with "here is where you are". `Cell.tsx` decides which one backdrop
    a cell gets, so these never stack. */
 .cell-same {
   background: var(--same);
 }
 
-.cell-conflict .cell-value {
-  color: var(--conflict-ink);
-}
-
 .cell-conflict {
   background: var(--conflict);
+}
+
+.cell-conflict .cell-value {
+  color: var(--conflict-ink);
 }
 
 .cell-wrong {
   background: var(--wrong);
 }
 
+/* The selection is a highlighter stroke, not a background: it goes *over*
+   whatever ground the cell already has (a conflict red stays red under it,
+   the way a felt-tip over red ink does) and *under* the digit, because that is
+   the order a real one lands in. Hence a layer rather than a `background`,
+   and hence the value and marks carrying a z-index. */
+.cell-selected::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--highlighter);
+  pointer-events: none;
+}
+
+/* Keyboard focus lives on the grid, so the ring that says "typing goes here"
+   belongs on the selected cell — but only while the grid actually has it. */
+.board:focus-visible .cell-selected::after {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
 .cell-value {
-  font-size: clamp(1.1rem, 5vw, 1.75rem);
+  position: relative;
+  z-index: 1;
+  font-size: calc(var(--board-size) / 9 * 0.56);
   font-variant-numeric: tabular-nums;
+  line-height: 1;
   color: var(--entered);
 }
 
 .cell-given .cell-value {
   color: var(--ink);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .cell-marks {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
   width: 100%;
   height: 100%;
-  font-size: clamp(0.5rem, 1.8vw, 0.6875rem);
+  font-size: max(8px, calc(var(--board-size) / 9 * 0.26));
   color: var(--ink-soft);
   line-height: 1;
 }
@@ -246,11 +496,10 @@ body {
   justify-content: center;
 }
 
-/* --- keypad ------------------------------------------------------------ */
+/* --- keypad ------------------------------------------------------------- */
 
 .keypad {
-  margin-top: 1rem;
-  width: min(100%, 32rem);
+  margin-top: 0.75rem;
 }
 
 .keypad-digits {
@@ -261,18 +510,43 @@ body {
 
 .keypad-key {
   position: relative;
-  padding: 0.75rem 0;
-  font-size: 1.125rem;
+  min-height: 2.75rem;
+  padding: 0.6rem 0;
+  font-family: var(--sans);
+  font-size: 1.25rem;
+  font-variant-numeric: tabular-nums;
   background: var(--panel);
   color: var(--ink);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 7px;
   cursor: pointer;
 }
 
+.keypad-key:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.keypad-key:active:not(:disabled) {
+  background: var(--tint);
+}
+
 .keypad-key:disabled {
-  opacity: 0.4;
+  opacity: 0.38;
   cursor: default;
+}
+
+.keypad-key:focus-visible,
+.keypad-toggle:focus-visible,
+.level-button:focus-visible,
+.tr-button:focus-visible,
+.tr-tab:focus-visible,
+.tr-reset:focus-visible,
+.tr-link:focus-visible,
+.cb-cell:focus-visible,
+.cb-mark:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* How many of this digit are on the board. Small and quiet: it is a glance,
@@ -280,9 +554,10 @@ body {
    for anyone who cannot see it. */
 .keypad-count {
   position: absolute;
-  top: 2px;
-  right: 4px;
-  font-size: 0.625rem;
+  top: 3px;
+  right: 5px;
+  font-family: var(--mono);
+  font-size: 0.5625rem;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   color: var(--ink-soft);
@@ -307,31 +582,43 @@ body {
 
 .keypad-toggle {
   flex: 1;
+  min-height: 2.75rem;
   padding: 0.6rem 0.75rem;
+  font: inherit;
   background: var(--panel);
   color: var(--ink);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 7px;
   cursor: pointer;
 }
 
-.keypad-toggle-on {
-  background: var(--accent);
+.keypad-toggle:hover {
   border-color: var(--accent);
-  color: var(--panel);
+}
+
+/* Mark mode on. The button wears the highlighter, because that is what the
+   mode does to the board: it is the pencil, not the pen. */
+.keypad-toggle-on {
+  background: var(--highlighter);
+  border-color: var(--accent);
+  color: var(--ink);
   font-weight: 600;
 }
 
 .keypad-erase {
   flex: 1;
+  min-height: 2.75rem;
   padding: 0.6rem 0.75rem;
+  font-size: 1rem;
 }
 
-/* --- level picker ------------------------------------------------------ */
+/* --- level picker ------------------------------------------------------- */
 
-.level-picker h2 {
-  font-size: 1rem;
-  font-weight: 600;
+.level-picker h2,
+.done h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
 }
 
 .level-list {
@@ -340,7 +627,7 @@ body {
   margin: 0;
   display: grid;
   gap: 0.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
 }
 
 .level-button {
@@ -348,14 +635,15 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.15rem;
-  padding: 0.85rem 1rem;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem 0.95rem;
   background: var(--panel);
   color: var(--ink);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   cursor: pointer;
   text-align: left;
+  font: inherit;
 }
 
 .level-button:hover:not(:disabled) {
@@ -364,7 +652,9 @@ body {
 
 .level-name {
   text-transform: capitalize;
-  font-weight: 600;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.0625rem;
 }
 
 .level-blurb {
@@ -372,50 +662,157 @@ body {
   font-size: 0.8125rem;
 }
 
+/* The ladder, drawn as one. Six segments (fourteen in training), the first
+   `--rung` of them inked: the order of these cards is information, so it gets
+   a mark of its own rather than being left to the reader's memory. It is
+   `aria-hidden` and last in the DOM — the level's accessible name has to stay
+   "medium, pairs start to matter", because that is what the e2e picks it by. */
+.ladder {
+  --rungs: 6;
+  --lit: calc(var(--rung) / var(--rungs) * 100%);
+  height: 5px;
+  width: 100%;
+  max-width: 9rem;
+  margin-top: 0.5rem;
+  border-radius: 1px;
+  background: linear-gradient(90deg, var(--accent) 0 var(--lit), var(--line) var(--lit) 100%);
+  -webkit-mask-image: repeating-linear-gradient(
+    90deg,
+    #000 0 calc(100% / var(--rungs) - 3px),
+    transparent calc(100% / var(--rungs) - 3px) calc(100% / var(--rungs))
+  );
+  mask-image: repeating-linear-gradient(
+    90deg,
+    #000 0 calc(100% / var(--rungs) - 3px),
+    transparent calc(100% / var(--rungs) - 3px) calc(100% / var(--rungs))
+  );
+}
+
+/* --- solved ------------------------------------------------------------- */
+
 .done {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  margin-bottom: 1.25rem;
+  border-radius: var(--radius);
+  padding: 0.9rem 1.1rem 1rem;
+  margin-bottom: 1.5rem;
+  animation: reveal 320ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
 }
 
+/* The one celebration in the app: the heading gets highlighted, the way you
+   would do it by hand when you were finished. */
 .done h2 {
-  margin: 0 0 0.25rem;
-  font-size: 1rem;
+  display: inline-block;
+  margin: 0 0 0.35rem;
+  padding: 0 0.3rem;
+  background: linear-gradient(var(--highlighter), var(--highlighter)) left center / 0 100% no-repeat;
+  animation: sweep 420ms 140ms cubic-bezier(0.3, 0.7, 0.2, 1) both;
 }
 
 .done p {
   margin: 0;
+  color: var(--ink-soft);
+}
+
+.done-level {
   text-transform: capitalize;
 }
 
-/* --- history ----------------------------------------------------------- */
+.done strong {
+  font-family: var(--mono);
+  font-weight: 400;
+  color: var(--ink);
+}
+
+/* --- history ------------------------------------------------------------ */
 
 .history {
   width: 100%;
   border-collapse: collapse;
   background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
 .history caption {
   text-align: left;
-  font-weight: 600;
-  padding-bottom: 0.5rem;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  padding-bottom: 0.6rem;
 }
 
 .history th,
 .history td {
   text-align: left;
-  padding: 0.5rem 0.75rem;
+  padding: 0.55rem 0.85rem;
   border-bottom: 1px solid var(--line);
+}
+
+.history th {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.history tr:last-child td {
+  border-bottom: none;
 }
 
 .history-level {
   text-transform: capitalize;
+  font-weight: 600;
 }
 
 .history-time,
 .history-clues {
+  font-family: var(--mono);
   font-variant-numeric: tabular-nums;
+}
+
+/* --- motion ------------------------------------------------------------- */
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes sweep {
+  from {
+    background-size: 0 100%;
+  }
+
+  to {
+    background-size: 100% 100%;
+  }
+}
+
+/* A digit landing. The span mounts when a value arrives in an empty cell, so
+   the animation fires exactly on the event worth marking and needs no state. */
+@keyframes settle {
+  from {
+    opacity: 0.35;
+    transform: scale(1.14);
+  }
+}
+
+.cell:not(.cell-given) .cell-value {
+  animation: settle 120ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .done,
+  .done h2,
+  .cell:not(.cell-given) .cell-value {
+    animation: none;
+  }
+
+  .done h2 {
+    background-size: 100% 100%;
+  }
 }
