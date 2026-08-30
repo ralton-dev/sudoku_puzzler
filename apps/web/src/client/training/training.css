@@ -15,7 +15,9 @@
 
 .tr-index h2,
 .tr-page h2 {
-  font-size: 1.35rem;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.4rem;
   margin: 0 0 0.35rem;
 }
 
@@ -40,7 +42,7 @@
   padding: 0.7rem 0.9rem;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   text-decoration: none;
   color: var(--ink);
 }
@@ -50,6 +52,7 @@
 }
 
 .tr-rung {
+  font-family: var(--mono);
   font-variant-numeric: tabular-nums;
   color: var(--ink-soft);
   min-width: 1.5rem;
@@ -63,7 +66,9 @@
 }
 
 .tr-name {
-  font-weight: 600;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.0625rem;
 }
 
 .tr-alias,
@@ -76,7 +81,9 @@
 
 .tr-meta {
   display: flex;
+  align-items: center;
   gap: 0.75rem;
+  font-family: var(--mono);
   font-variant-numeric: tabular-nums;
 }
 
@@ -153,8 +160,10 @@
 }
 
 .tr-prose h3 {
-  font-size: 1rem;
-  margin: 1.4rem 0 0.4rem;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.0625rem;
+  margin: 1.5rem 0 0.4rem;
 }
 
 .tr-prose p {
@@ -204,11 +213,12 @@
 }
 
 .tr-button {
+  min-height: 2.5rem;
   padding: 0.5rem 0.9rem;
   background: var(--panel);
   color: var(--ink);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 7px;
   font: inherit;
   cursor: pointer;
 }
@@ -225,7 +235,7 @@
 .tr-button-primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: var(--panel);
+  color: var(--sheet);
   font-weight: 600;
 }
 
@@ -235,13 +245,18 @@
 
 /* --- candidate board ---------------------------------------------------- */
 
+/* The same frame as the game board — the mark's stroke and radius — because a
+   teaching board that did not look like the board would be teaching the wrong
+   thing. */
 .cboard {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
   width: min(100%, 32rem);
   aspect-ratio: 1;
   background: var(--panel);
-  border: 2px solid var(--line-strong);
+  border: var(--frame) solid var(--line-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
   user-select: none;
 }
 
@@ -282,8 +297,10 @@ button.cb-cell {
   border-bottom: 2px solid var(--line-strong);
 }
 
+/* The pattern is highlighted, in the literal sense: the same translucent
+   yellow the game board marks the selected square with. */
 .cb-pattern {
-  background: var(--selected);
+  background: var(--highlighter);
 }
 
 .cb-picked {
@@ -292,13 +309,13 @@ button.cb-cell {
 }
 
 .cb-placed {
-  background: var(--selected);
+  background: var(--highlighter);
 }
 
 .cb-value {
   font-size: clamp(1rem, 4.5vw, 1.6rem);
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .cb-value-placed {
