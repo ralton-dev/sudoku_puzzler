@@ -26,9 +26,13 @@ updates:
     open-pull-requests-limit: 5
     labels: ['dependencies', 'ci']
   # One container only: the single Fastify process that also serves the client
-  # (decision 7). WP-G lands apps/web/Dockerfile.
+  # (decision 7). The Dockerfile is at the repo ROOT — it needs the whole
+  # workspace as its build context — and this said `/apps/web`, where WP-G was
+  # once expected to put it. Dependabot found no Dockerfile there and so never
+  # once offered a base-image bump, which is how `node:22-slim` sat a whole LTS
+  # behind without a PR to say so.
   - package-ecosystem: docker
-    directory: '/apps/web'
+    directory: '/'
     schedule:
       interval: weekly
     labels: ['dependencies', 'docker']

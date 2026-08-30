@@ -113,7 +113,7 @@ bundle (`https://www.sudokuoftheday.com/…`) is a provenance string in
 `fixtures/known.ts` and is never fetched. DNS is the only egress a policy needs
 to allow, and only because the standard set includes it.
 
-**Running it from source.** Node 22 and pnpm 9. `pnpm install`, then `pnpm
+**Running it from source.** Node 24 and pnpm 11. `pnpm install`, then `pnpm
 check` for the whole gate — lint, typecheck, test, build, in that order.
 `pnpm --filter web dev` boots the server on `PORT` (default 8080) with the
 SQLite file under `DATA_DIR` (default `./data`); it serves the API and,

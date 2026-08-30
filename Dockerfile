@@ -11,16 +11,16 @@
 
 # syntax=docker/dockerfile:1
 
-FROM node:22-slim AS build
+FROM node:24-slim AS build
 
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
-# pnpm 9, pinned by the root package.json `packageManager` field.
+# pnpm 11, pinned by the root package.json `packageManager` field.
 RUN corepack enable
 
 # Only needed if better-sqlite3 has no prebuilt binary for this platform; the
-# whole stage is discarded either way. better-sqlite3 11.10 ships a prebuild for
-# both linux-x64 and linux-arm64 on glibc — which node:22-slim is — so
+# whole stage is discarded either way. better-sqlite3 13 ships a prebuild for
+# both linux-x64 and linux-arm64 on glibc — which node:24-slim is — so
 # `prebuild-install` wins on both of CI's architectures and node-gyp never runs
 # (measured: the install step takes 0.7 s on arm64, 1.5 s on amd64). The
 # toolchain stays anyway: the fallback is the difference between a slow build
@@ -50,7 +50,7 @@ RUN pnpm --filter web build
 RUN pnpm deploy --filter=web --prod /deploy
 
 
-FROM node:22-slim AS runtime
+FROM node:24-slim AS runtime
 
 ENV NODE_ENV=production
 # Decision 6: the SQLite file lives here and this is the only mount.
