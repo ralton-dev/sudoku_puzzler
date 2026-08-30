@@ -121,7 +121,16 @@ reporting the tag, 0 restarts, and `/data` holding `sudoku.db` + `-wal` with
 flight — the CI concurrency group cancels the build.
 
 Offered, not asked for: an in-game hint button from the rater's `Step` trace.
-Parked: Dependabot majors #1–#7 (vitest 3/4 need `test.projects`).
+
+**Dependabot majors #1–#8: all closed as superseded by `795275c`..`413898a`**,
+which took every dependency and every action to its current release in one pass
+— vitest 4, vite 8, React 19, react-router 8, `@fastify/static` 10, eslint 10,
+Node 24, pnpm 11. Two things are deliberately held back and only two:
+`typescript` on 5.9.3 (TypeScript 7 is the native compiler and ships no JS
+compiler API, so typescript-eslint throws on load and takes `lint` — the first
+step of the gate — with it; typescript-eslint#10940 tracks it) and
+`@types/node` on the 24 line, so the types describe the runtime the container
+actually runs.
 
 ## Package ledger
 
@@ -147,12 +156,15 @@ Parked: Dependabot majors #1–#7 (vitest 3/4 need `test.projects`).
   `generate() is not implemented yet — WP-D lands it.` is the scaffold working,
   not a break. WP-E in particular hits this on `POST /api/game` and is expected
   to: its tests inject a puzzle source and use the fixtures.
-- **Vitest** runs from `vitest.workspace.ts` at the root, with a project per
-  package. `sudoku-core` includes `src/**/*.test.ts`; `web` includes the same and
-  carries `passWithNoTests` because it has none yet. WP-F needs a DOM: add a third
-  project (`web-client`, `environment: 'jsdom'`) and narrow `web` to `src/server`
-  — the file says so in a comment, and that is the only edit it expects.
-  `pnpm vitest run --project sudoku-core` narrows a run.
+- **Vitest** runs from `test.projects` in `vitest.config.ts` at the root, with a
+  project per package. (WP-A wrote this as `defineWorkspace` in a
+  `vitest.workspace.ts`; that file was deprecated in Vitest 3, removed in 4, and
+  the three projects moved across unchanged in `795275c`.) `sudoku-core`
+  includes `src/**/*.test.ts`; `web` narrows to `src/server/**` and carries
+  `passWithNoTests`; `web-client` is the DOM half (`environment: 'jsdom'`, with
+  `src/client/test-setup.ts`). The three **names are a contract** — scripts, CI
+  and this file all use them. `pnpm vitest run --project sudoku-core` narrows a
+  run.
 - **Dependencies.** Root dev tooling (typescript, eslint, prettier, vitest) lives
   in the **root** `package.json`; `packages/sudoku-core` has **none at all** and
   must stay that way (decision 3 — pure, dependency-free, no Node APIs). Fastify,
@@ -165,8 +177,13 @@ Parked: Dependabot majors #1–#7 (vitest 3/4 need `test.projects`).
   note at the top before writing WP-D2's calibration assertions: decision 16's
   band table is not the same thing as SOTD's labels, and the tricky fixture is the
   one that shows it.
-- **Node 22, pnpm 9**, pinned by `packageManager` in the root `package.json` and
-  by `corepack enable` in CI.
+- **Node 24, pnpm 11**, pinned by `engines` and `packageManager` in the root
+  `package.json` and by `corepack enable` in CI. (WP-A scaffolded Node 22 and
+  pnpm 9; Node 22 went into maintenance in October 2025 and 24 is the Active
+  LTS.) pnpm 11 needs two things the scaffold did not: dependency lifecycle
+  scripts are opt-in, so `better-sqlite3` and `esbuild` are named in
+  `allowBuilds` in `pnpm-workspace.yaml`, and `pnpm deploy` in the Dockerfile
+  takes `--legacy`.
 
 ## CI
 
@@ -312,10 +329,22 @@ Things that cost someone an afternoon. Read before repeating them.
 5. **`pnpm-lock.yaml` is committed by the orchestrator only**, once, after a
    wave lands. Adding deps to your own `package.json` is fine; staging the lock
    is not.
-6. **Dependabot major PRs #1–#7 are parked.** vitest 3 and 4 need the config
-   moved to `test.projects` (the `vitest.workspace.ts` file is deprecated in
-   both); #3's vite bump is spurious. Leave them until someone takes the vitest
-   migration deliberately.
+6. **A scaffold that pins versions from memory is a generation behind before
+   anyone has run it.** WP-A wrote the whole dependency set out by hand on
+   2026-08-29 and it looked plausible: vitest 2, vite 6, React 18,
+   `react-router-dom` 6, `@fastify/static` 8, eslint 9, Node 22, pnpm 9. Within
+   a day Dependabot had opened eight major-bump PRs against it, and the real
+   cost was not the bumps — it was that every one of them arrived _after_ the
+   code was written against the old API, so the vitest move had to be made
+   twice over. **Resolve every version live before you write the manifest**:
+   `npm view <pkg> version`, `gh api repos/<owner>/<action>/releases/latest
+--jq .tag_name`, and the Node release schedule (`nodejs/Release`'s
+   `schedule.json`) for which LTS is _active_ rather than merely supported.
+   The same trap caught the base image from the other side: `.github/dependabot.yml`
+   pointed its docker ecosystem at `/apps/web`, where the Dockerfile was once
+   expected to land, so Dependabot found nothing and never offered a base-image
+   bump at all — `node:22-slim` went a whole LTS stale in silence. A dependency
+   nobody is watching is pinned, not stable.
 7. **`sudoku-core`'s barrel is not loadable by plain Node ESM.**
    `src/training/index.ts` does `import examples from './examples.json'`, which
    Node requires an import attribute for. Everything in the tree survives
