@@ -1,6 +1,6 @@
 import { defineConfig, type ProxyOptions } from 'vite';
 import react from '@vitejs/plugin-react';
-import { mockApiPlugin, type MockFixture } from './src/client/dev/mockApi';
+import { mockApiPlugin, type MockFixture } from './src/client/dev/mockApi.ts';
 
 /**
  * The client build. Root is `apps/web` (so `index.html` sits next to this

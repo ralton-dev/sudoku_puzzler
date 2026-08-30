@@ -24,7 +24,7 @@
 
 import type { Plugin } from 'vite';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { KNOWN_BY_LEVEL } from '../../../../../packages/sudoku-core/src/fixtures/known';
+import { KNOWN_BY_LEVEL } from '../../../../../packages/sudoku-core/src/fixtures/known.ts';
 import type {
   ActiveGame,
   CellState,
@@ -33,7 +33,7 @@ import type {
   HistoryEntry,
   Level,
   SaveProgressBody,
-} from '../../shared/api';
+} from '../../shared/api.ts';
 
 /** Which seeded state the mock starts in. `VITE_MOCK_FIXTURE` picks it. */
 export type MockFixture = 'awkward' | 'easy' | 'none';

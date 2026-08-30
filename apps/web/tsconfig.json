@@ -3,7 +3,13 @@
   "compilerOptions": {
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
-    "types": ["node"]
+    "types": ["node"],
+    // Vite 8's `configLoader: 'native'` (a future default) loads vite.config.ts
+    // through Node's own type stripping, which does not rewrite a `.js`
+    // specifier to a `.ts` file — so the config and the dev-only plugin it
+    // pulls in have to name real files. Only this project needs it; the
+    // library's build emits, and `allowImportingTsExtensions` requires noEmit.
+    "allowImportingTsExtensions": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"]
 }
