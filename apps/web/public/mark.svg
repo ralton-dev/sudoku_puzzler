@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Sudoku Puzzler">
+  <title>Sudoku Puzzler</title>
+  <!--
+    The mark is the board's own 3x3 box, drawn at 1/32 scale: the heavy box
+    rule as a rounded frame, the thirds ruled inside at half that weight, and
+    one cell laid over with the highlighter. Stroke 3/32 and radius 6.5/32 are
+    the ratios `.board` uses, so the header mark and the grid under it are the
+    same drawing at two sizes.
+
+    It carries its own colours (and its own dark scheme) because it is served
+    as a file: <img src="/mark.svg"> and <link rel="icon"> cannot inherit
+    anything from the page. The PNG/ICO set in this directory is rendered from
+    this file by ../scripts/render-icons.mjs; edit this and re-run that.
+  -->
+  <style>
+    .ground { fill: #fdfdfe; }
+    .rule { stroke: #20262e; }
+    .hair { stroke: #20262e; opacity: 0.5; }
+    .lit { fill: #ffd60a; opacity: 0.85; }
+    @media (prefers-color-scheme: dark) {
+      .ground { fill: #1e2227; }
+      .rule { stroke: #e7eaee; }
+      .hair { stroke: #7c858f; opacity: 0.8; }
+      .lit { fill: #ffd60a; opacity: 0.82; }
+    }
+  </style>
+  <rect class="ground" x="1" y="1" width="30" height="30" rx="7.5" />
+  <rect class="lit" x="12" y="12" width="8" height="8" />
+  <g class="hair" stroke-width="1.4" stroke-linecap="square">
+    <path d="M12 4V28M20 4V28M4 12H28M4 20H28" />
+  </g>
+  <rect class="rule" x="2.5" y="2.5" width="27" height="27" rx="6" fill="none" stroke-width="3" />
+</svg>
