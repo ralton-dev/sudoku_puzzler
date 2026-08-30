@@ -123,6 +123,10 @@
   /* highlighter: translucent, laid over the paper and under the ink, exactly
      as a felt-tip is. The one colour here that comes from a pen. */
   --highlighter: rgb(255 214 10 / 55%);
+  /* Where the felt-tip's ink pools at the edge of a stroke. It is also what
+     keeps the lit square legible in the dark theme, where a translucent wash
+     on a dark sheet can only ever be faint. */
+  --highlighter-edge: rgb(226 176 0 / 80%);
   /* sage: "where else is this number". Quieter than the highlighter on
      purpose — it answers a question, it does not say where you are. */
   --sage: #d6e4d2;
@@ -187,7 +191,8 @@
     --graphite: #e7eaee;
     --graphite-soft: #98a0aa;
     --pencil: #7fb6ee;
-    --highlighter: rgb(255 214 10 / 22%);
+    --highlighter: rgb(255 214 10 / 14%);
+    --highlighter-edge: rgb(255 214 10 / 48%);
     --sage: #27362a;
     --rubric: #452421;
     --rubric-deep: #5d2e28;
@@ -454,13 +459,16 @@ h3 {
   position: absolute;
   inset: 0;
   background: var(--highlighter);
+  box-shadow: inset 0 0 0 2px var(--highlighter-edge);
   pointer-events: none;
 }
 
 /* Keyboard focus lives on the grid, so the ring that says "typing goes here"
-   belongs on the selected cell — but only while the grid actually has it. */
-.board:focus-visible .cell-selected::after {
-  box-shadow: inset 0 0 0 2px var(--accent);
+   belongs on the selected cell — but only while the grid actually has it. An
+   inset outline rather than a shadow, because the shadow is the felt-tip. */
+.board:focus-visible .cell-selected {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .cell-value {
