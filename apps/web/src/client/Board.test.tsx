@@ -10,7 +10,7 @@
 import { useState } from 'react';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, type Mock } from 'vitest';
 import type { CellState, Digit } from '../shared/api';
 import { Board } from './Board';
 import { countDigits } from './useGame';
@@ -47,10 +47,14 @@ function initialCells(): CellState[] {
   return cells;
 }
 
+// Spelled out rather than `ReturnType<typeof vi.fn>`: from Vitest 4 a bare
+// `vi.fn()` is a mock that could be called *or* constructed, so an untyped spy
+// is no longer callable in a type position. Naming the signature also means a
+// prop that changes shape fails here rather than passing an unchecked spy.
 interface Spies {
-  setValue: ReturnType<typeof vi.fn>;
-  toggleMark: ReturnType<typeof vi.fn>;
-  clear: ReturnType<typeof vi.fn>;
+  setValue: Mock<(index: number, digit: Digit) => void>;
+  toggleMark: Mock<(index: number, digit: number) => void>;
+  clear: Mock<(index: number) => void>;
 }
 
 function Harness({ spies, startInMarkMode = false }: { spies: Spies; startInMarkMode?: boolean }) {
@@ -101,7 +105,11 @@ function Harness({ spies, startInMarkMode = false }: { spies: Spies; startInMark
 }
 
 function setup(startInMarkMode = false) {
-  const spies: Spies = { setValue: vi.fn(), toggleMark: vi.fn(), clear: vi.fn() };
+  const spies: Spies = {
+    setValue: vi.fn<(index: number, digit: Digit) => void>(),
+    toggleMark: vi.fn<(index: number, digit: number) => void>(),
+    clear: vi.fn<(index: number) => void>(),
+  };
   const user = userEvent.setup();
   render(<Harness spies={spies} startInMarkMode={startInMarkMode} />);
   return { spies, user };

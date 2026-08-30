@@ -8,15 +8,19 @@
 
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, type Mock } from 'vitest';
+import type { Digit } from '../shared/api';
 import { Keypad } from './Keypad';
 
+// See the note in `Board.test.tsx`: from Vitest 4 a bare `vi.fn()` is callable
+// or constructable, so each spy carries the signature of the prop it stands in
+// for. The two files deliberately mirror each other.
 interface Spies {
-  setValue: ReturnType<typeof vi.fn>;
-  toggleMark: ReturnType<typeof vi.fn>;
-  clear: ReturnType<typeof vi.fn>;
-  select: ReturnType<typeof vi.fn>;
-  markMode: ReturnType<typeof vi.fn>;
+  setValue: Mock<(index: number, digit: Digit) => void>;
+  toggleMark: Mock<(index: number, digit: number) => void>;
+  clear: Mock<(index: number) => void>;
+  select: Mock<(index: number | null) => void>;
+  markMode: Mock<(next: boolean) => void>;
 }
 
 /** A count table with the given digits set; everything else at zero. */
@@ -35,11 +39,11 @@ function setup(
   } = {},
 ) {
   const spies: Spies = {
-    setValue: vi.fn(),
-    toggleMark: vi.fn(),
-    clear: vi.fn(),
-    select: vi.fn(),
-    markMode: vi.fn(),
+    setValue: vi.fn<(index: number, digit: Digit) => void>(),
+    toggleMark: vi.fn<(index: number, digit: number) => void>(),
+    clear: vi.fn<(index: number) => void>(),
+    select: vi.fn<(index: number | null) => void>(),
+    markMode: vi.fn<(next: boolean) => void>(),
   };
   const user = userEvent.setup();
   render(
