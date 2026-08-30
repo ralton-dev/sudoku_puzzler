@@ -11,7 +11,7 @@
 
 # syntax=docker/dockerfile:1
 
-FROM node:24-slim AS build
+FROM node:26-slim AS build
 
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
@@ -58,7 +58,7 @@ RUN pnpm --filter web build
 RUN pnpm deploy --legacy --filter=web --prod /deploy
 
 
-FROM node:24-slim AS runtime
+FROM node:26-slim AS runtime
 
 ENV NODE_ENV=production
 # Decision 6: the SQLite file lives here and this is the only mount.
