@@ -65,7 +65,10 @@ function GamePage({ game }: { game: UseGame }) {
           <section className="done" data-testid="completion">
             <h2>Solved</h2>
             <p>
-              {game.completed.level} in <strong>{formatElapsed(game.completed.elapsedMs)}</strong>.
+              {/* Only the level is capitalised. `text-transform: capitalize` on
+                  the whole sentence turned the "in" into an "In". */}
+              <span className="done-level">{game.completed.level}</span> in{' '}
+              <strong>{formatElapsed(game.completed.elapsedMs)}</strong>.
             </p>
           </section>
         ) : null}
@@ -125,7 +128,15 @@ export function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Sudoku Puzzler</h1>
+        {/*
+          The mark is the board's own 3x3 box (`public/mark.svg`), and it is
+          `alt=""` on purpose: the wordmark beside it already says the name, so
+          a second reading of it would only make the heading stutter.
+        */}
+        <h1 className="app-brand">
+          <img className="brand-mark" src="/mark.svg" alt="" width="28" height="28" />
+          <span>Sudoku Puzzler</span>
+        </h1>
         <nav className="app-nav">
           <NavLink to="/" end>
             Play
