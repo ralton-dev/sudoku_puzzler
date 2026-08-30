@@ -47,7 +47,15 @@ RUN pnpm --filter web build
 # A self-contained production tree: the three esbuild externals
 # (better-sqlite3, fastify, @fastify/static) with their native builds, and
 # nothing that only the build needed.
-RUN pnpm deploy --filter=web --prod /deploy
+#
+# `--legacy` because pnpm 10 made `deploy` refuse to run unless the workspace
+# sets `injectWorkspacePackages`, which would stop `sudoku-core` being a
+# symlink in every developer's tree — a real cost, paid to change nothing here.
+# The image does not need the injected form: `sudoku-core` is bundled into
+# dist/server/index.js by esbuild and is not a runtime dependency at all, so
+# what this has to produce is exactly what it always produced — the three
+# externals, resolved, with their native builds.
+RUN pnpm deploy --legacy --filter=web --prod /deploy
 
 
 FROM node:24-slim AS runtime
