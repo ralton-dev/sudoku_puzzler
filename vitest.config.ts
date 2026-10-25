@@ -39,6 +39,8 @@ export default defineConfig({
           name: 'web-client',
           root: './apps/web',
           environment: 'jsdom',
+          // Use jsdom's per-window storage instead of Node's host localStorage.
+          execArgv: ['--no-experimental-webstorage'],
           include: ['src/client/**/*.test.ts', 'src/client/**/*.test.tsx'],
           setupFiles: ['./src/client/test-setup.ts'],
         },
