@@ -1,6 +1,6 @@
-# Weekly dependency updates for the pnpm workspace + GitHub Actions.
-# Vulnerability alerts and security-only updates are configured at the repo
-# level (decision 15; applied by the human, never by an agent).
+# Weekly reviewed minor/patch PR groups; majors remain separate.
+# Security PR groups require enabled repository alerts and security updates. No automerge.
+---
 version: 2
 updates:
   - package-ecosystem: npm
@@ -9,30 +9,63 @@ updates:
       interval: weekly
       day: monday
       time: '06:00'
-      timezone: 'Europe/London'
+      timezone: Europe/London
     open-pull-requests-limit: 5
-    labels: ['dependencies']
+    labels:
+      - dependencies
     groups:
-      # Group minor + patch bumps to reduce noise; majors stay individual.
+      vitest-family:
+        patterns:
+          - vitest
+          - '@vitest/*'
+        update-types:
+          - minor
+          - patch
       minor-and-patch:
-        update-types: ['minor', 'patch']
+        update-types:
+          - minor
+          - patch
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - '*'
   - package-ecosystem: github-actions
     directory: '/'
     schedule:
       interval: weekly
       day: monday
       time: '06:00'
-      timezone: 'Europe/London'
+      timezone: Europe/London
     open-pull-requests-limit: 5
-    labels: ['dependencies', 'ci']
-  # One container only: the single Fastify process that also serves the client
-  # (decision 7). The Dockerfile is at the repo ROOT — it needs the whole
-  # workspace as its build context — and this said `/apps/web`, where WP-G was
-  # once expected to put it. Dependabot found no Dockerfile there and so never
-  # once offered a base-image bump, which is how `node:22-slim` sat a whole LTS
-  # behind without a PR to say so.
+    labels:
+      - dependencies
+      - ci
+    groups:
+      minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - '*'
   - package-ecosystem: docker
     directory: '/'
     schedule:
       interval: weekly
-    labels: ['dependencies', 'docker']
+    labels:
+      - dependencies
+      - docker
+    groups:
+      minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - '*'
