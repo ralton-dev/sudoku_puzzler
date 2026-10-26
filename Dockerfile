@@ -70,6 +70,9 @@ ENV HOST=0.0.0.0
 # in this workspace says 0.0.0 and the tag is the only version a container has.
 ENV APP_VERSION=dev
 
+# npm is only needed by the build stage; the server runs directly with Node.
+RUN npm uninstall --global npm --ignore-scripts --no-audit --no-fund
+
 WORKDIR /app
 # Only the two things the runtime needs from the deploy tree: the resolved
 # production dependencies, and the manifest — `"type": "module"` lives there and
