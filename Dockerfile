@@ -15,8 +15,6 @@ FROM node:24-slim AS build
 
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
-# pnpm 11, pinned by the root package.json `packageManager` field.
-RUN corepack enable
 
 # Only needed if better-sqlite3 has no prebuilt binary for this platform; the
 # whole stage is discarded either way. better-sqlite3 13 ships a prebuild for
@@ -37,6 +35,17 @@ WORKDIR /src
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY packages/sudoku-core/package.json packages/sudoku-core/
 COPY apps/web/package.json apps/web/
+# pnpm at exactly the version the root package.json `packageManager` field pins
+# (any `+sha…` suffix dropped). Installed with npm rather than corepack because
+# Node stopped bundling corepack from v25 on — node:26-slim has no `corepack`
+# binary — while npm is in every node image. Reading the field here keeps
+# `packageManager` the one place the version lives, so Renovate's pnpm updates
+# reach the image with no second pin to track.
+RUN npm install --global --no-audit --no-fund "$(node -p " \
+    const pm = require('./package.json').packageManager.split('+')[0]; \
+    if (!pm.startsWith('pnpm@')) throw new Error('packageManager is not pnpm: ' + pm); \
+    pm")" \
+  && pnpm --version
 RUN pnpm install --frozen-lockfile
 
 COPY . .
